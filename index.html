@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>استوديو جسور للمونتاج الأكاديمي — Joussour Montage Studio</title>
+  <!-- Google Fonts: Cairo & IBM Plex Sans Arabic -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- GSAP CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0a0b0e;
+      --panel-bg: #12141c;
+      --card-bg: #1a1d28;
+      --border-color: #272b3c;
+      --gold: #FFC61A;
+      --gold-hover: #ffd44d;
+      --gold-glow: rgba(255, 198, 26, 0.35);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-blue: #3b82f6;
+      --success-green: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      direction: rtl;
+    }
+
+    /* Top Bar */
+    header {
+      background: var(--panel-bg);
+      border-bottom: 2px solid var(--border-color);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-badge {
+      background: var(--gold);
+      color: #111;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: -2px;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      background: var(--bg-dark);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--gold);
+      color: #111;
+      box-shadow: 0 2px 10px var(--gold-glow);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .status-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success-green);
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--success-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success-green);
+    }
+
+    /* Main Workspace Layout */
+    .workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left Control Sidebar */
+    .sidebar {
+      width: 440px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .sidebar-inner {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+    input[type="text"], textarea, select {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px var(--gold-glow);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 65px;
+    }
+
+    .presets-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .preset-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-pill:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .dropzone {
+      border: 2px dashed var(--border-color);
+      background: rgba(26, 29, 40, 0.5);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--gold);
+      background: rgba(255, 198, 26, 0.05);
+    }
+    .dropzone-icon {
+      font-size: 28px;
+    }
+    .dropzone-text {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .dropzone-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      flex: 1;
+      padding: 11px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: #111;
+    }
+    .btn-primary:hover {
+      background: var(--gold-hover);
+      box-shadow: 0 4px 14px var(--gold-glow);
+    }
+    .btn-secondary {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover {
+      background: #252938;
+      border-color: #3b4055;
+    }
+    .btn-green {
+      background: #10b981;
+      color: #fff;
+    }
+    .btn-green:hover {
+      background: #059669;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    /* Right Preview Stage */
+    .preview-stage {
+      flex: 1;
+      background: #08090c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stage-toolbar {
+      position: absolute;
+      top: 20px;
+      display: flex;
+      gap: 12px;
+      background: rgba(18, 20, 28, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 30px;
+      z-index: 50;
+    }
+    .tool-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tool-btn:hover, .tool-btn.active {
+      color: var(--gold);
+      background: rgba(255, 198, 26, 0.1);
+    }
+
+    /* 16:9 Canvas Viewport Container */
+    .canvas-viewport {
+      width: 100%;
+      max-width: 1100px;
+      aspect-ratio: 16 / 9;
+      background-image: 
+        linear-gradient(45deg, #13151f 25%, transparent 25%), 
+        linear-gradient(-45deg, #13151f 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #13151f 75%), 
+        linear-gradient(-45deg, transparent 75%, #13151f 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      position: relative;
+      overflow: hidden;
+      transform-origin: center center;
+    }
+
+    /* Virtual Full-HD 1920x1080 Root Scaled to Viewport */
+    #renderRoot {
+      width: 1920px;
+      height: 1080px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: top left;
+      pointer-events: none;
+    }
+
+    /* ==============================================================
+       SPLIT-SCREEN OVERLAY STYLES
+       ============================================================== */
+    #splitScreenContainer {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Left half transparent student zone (X: 0 to 960) */
+    .ss-left-student {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 960px;
+      height: 1080px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ss-placeholder-box {
+      border: 2px dashed rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 16px 28px;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 20px;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    /* Vertical Golden Divider */
+    .ss-divider {
+      position: absolute;
+      top: 0;
+      left: 960px;
+      width: 4px;
+      height: 1080px;
+      background: var(--gold);
+      box-shadow: 0 0 20px var(--gold-glow);
+      z-index: 20;
+    }
+
+    /* Right half document stage (X: 960 to 1920) */
+    .ss-right-stage {
+      position: absolute;
+      top: 0;
+      left: 960px;
+      width: 960px;
+      height: 1080px;
+      background: rgba(18, 20, 26, 0.97);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 34px;
+      z-index: 10;
+    }
+
+    /* Header Bar */
+    .ss-header {
+      width: 100%;
+      background: #1E222C;
+      border-bottom: 3px solid var(--gold);
+      border-radius: 8px;
+      padding: 13px 22px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+    .ss-header-text {
+      color: #FFFFFF;
+      font-size: 21px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* Center Document Card */
+    .ss-doc-wrapper {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 0;
+    }
+    .ss-doc-card {
+      max-height: 840px;
+      max-width: 640px;
+      background: #FFFFFF;
+      border-radius: 8px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ss-doc-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* Footer Presenter Tag */
+    .ss-footer {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px 0;
+    }
+    .ss-footer-text {
+      color: var(--gold);
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    /* ==============================================================
+       LOWER-THIRD OVERLAY STYLES
+       ============================================================== */
+    #lowerThirdContainer {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      overflow: hidden;
+    }
+    .lt-wrapper {
+      position: absolute;
+      bottom: 85px;
+      left: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      direction: rtl;
+      filter: drop-shadow(0 16px 30px rgba(0,0,0,0.75));
+    }
+    .lt-role-badge {
+      background: var(--gold);
+      color: #111111;
+      font-weight: 900;
+      font-size: 22px;
+      padding: 6px 26px;
+      border-radius: 8px 8px 0 0;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px var(--gold-glow);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-bottom: none;
+    }
+    .lt-main-card {
+      background: linear-gradient(135deg, rgba(18, 20, 26, 0.97) 0%, rgba(28, 32, 44, 0.97) 100%);
+      border: 2px solid var(--gold);
+      border-radius: 0 14px 14px 14px;
+      padding: 16px 36px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.55);
+    }
+    .lt-gold-bar {
+      width: 10px;
+      height: 48px;
+      background: var(--gold);
+      border-radius: 4px;
+      box-shadow: 0 0 12px var(--gold-glow);
+    }
+    .lt-info-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .lt-name-text {
+      color: #FFFFFF;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .lt-affil-text {
+      color: var(--text-muted);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* Modal for Code Export */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-box {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      width: 650px;
+      max-width: 90%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #090a0e;
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      border-radius: 8px;
+      color: #7dd3fc;
+      font-size: 13px;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      direction: ltr;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-wrap">
+      <div class="brand-badge">نادي جسور</div>
+      <div>
+        <div class="brand-title">استوديو جسور للمونتاج الأكاديمي</div>
+        <div class="brand-sub">مولّد الشاشات المنقسمة وأشرطة التعريف المتحركة — كلية العلوم الإسلامية</div>
+      </div>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="tabSplit" onclick="switchTab('split')">
+        <span>🪟 الشاشة المنقسمة (Split-Screen)</span>
+      </button>
+      <button class="tab-btn" id="tabLT" onclick="switchTab('lt')">
+        <span>🏷️ أشرطة التعريف (Lower-Thirds)</span>
+      </button>
+    </div>
+
+    <!-- Status & Quick Info -->
+    <div class="top-actions">
+      <div class="status-pill">
+        <div class="status-dot"></div>
+        <span>1080p Full-HD · 30 FPS</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="workspace">
+
+    <!-- Left Controls Panel -->
+    <div class="sidebar">
+      <div class="sidebar-inner">
+
+        <!-- TAB 1: SPLIT SCREEN CONTROLS -->
+        <div id="splitControls">
+          <div class="form-group">
+            <label class="form-label">
+              <span>صورة الوثيقة أو صفحة الأطروحة</span>
+              <span class="form-hint">PNG أو JPG عالية الدقة</span>
+            </label>
+            <div class="dropzone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+              <div class="dropzone-icon">📄</div>
+              <div class="dropzone-text" id="dropFileName">انقر لاختيار صفحة، أو اسحب الصورة هنا</div>
+              <div class="dropzone-sub">يدعم صفحات PDF المستخرجة والمطبوعة</div>
+              <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+            </div>
+            <!-- PhD Thesis Quick Presets -->
+            <div class="presets-row">
+              <span style="font-size: 11px; color: var(--text-muted); width: 100%;">صفحات أطروحة د. أحمد قبايلي الجاهزة:</span>
+              <button class="preset-pill" onclick="loadThesisPage('17', 'الفصل الأول: مشكلة الشر وتأطيرها إلحادياً')">ص 17 (الشر)</button>
+              <button class="preset-pill" onclick="loadThesisPage('25', 'مرتكزات الإلحاد المعاصر ودحضها')">ص 25 (الإلحاد)</button>
+              <button class="preset-pill" onclick="loadThesisPage('09', 'أهداف البحث وإشكاليته')">ص 9 (الأهداف)</button>
+              <button class="preset-pill" onclick="loadThesisPage('13', 'منهج البحث وأدواته')">ص 13 (المنهج)</button>
+              <button class="preset-pill" onclick="loadThesisPage('15', 'خطة البحث وهيكلة الفصول')">ص 15 (الخطة)</button>
+              <button class="preset-pill" onclick="loadThesisPage('290', 'نتائج الأطروحة والتوصيات')">ص 290 (النتائج)</button>
+              <button class="preset-pill" onclick="loadThesisPage('01', 'واجهة الأطروحة الرسمية')">ص 1 (الواجهة)</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">العنوان العلوي (الشريط الأعلى)</label>
+            <textarea id="ssHeaderInput" rows="2" oninput="updateSplitScreen()">أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | ملخص الأطروحة (3/4): مشكلة الشر في الفكر الكلامي</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">العنوان السفلي / صفة المتحدث</label>
+            <input type="text" id="ssFooterInput" value="عرض وتقرير ملخص الأطروحة — الباحث أحمد قبايلي" oninput="updateSplitScreen()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">لون الخط الفاصل وهوية النادي</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="color" id="dividerColor" value="#FFC61A" style="width: 45px; height: 38px; border-radius: 6px; cursor: pointer;" onchange="updateDividerColor()">
+              <input type="text" id="dividerColorHex" value="#FFC61A" style="flex:1;" onchange="document.getElementById('dividerColor').value = this.value; updateDividerColor()">
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: LOWER THIRDS CONTROLS -->
+        <div id="ltControls" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">أعضاء لجنة مناقشة د. أحمد قبايلي</label>
+            <select id="ltPresetSelect" onchange="applyLTPreset(this.value)">
+              <option value="">-- اختر أستاذاً للتطبيق التلقائي --</option>
+              <option value="chafia">أ.د. شافية صديق (رئيسة اللجنة)</option>
+              <option value="akkak">أ.د. عبد الغني عكاك (المناقش الأول)</option>
+              <option value="chennouf">أ.د. ناجي شنوف (المناقش الثاني)</option>
+              <option value="chentouh">أ.د. ليليا شنتوح (المناقشة الثالثة)</option>
+              <option value="addar">أ.د. يوسف عدار (المشرف والمقرر)</option>
+              <option value="kabaili">الباحث أحمد قبايلي (المترشح)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">الصفة / الرتبة في الجلسة (الشريط الذهبي الأعلى)</label>
+            <input type="text" id="ltRoleInput" value="رئيس لجنة المناقشة" oninput="updateLowerThird()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">الاسم الكامل واللقب الأكاديمي</label>
+            <input type="text" id="ltNameInput" value="أ.د. شافية صديق" oninput="updateLowerThird()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">الجامعة / الكلية / التخصص</label>
+            <input type="text" id="ltAffilInput" value="جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)" oninput="updateLowerThird()">
+          </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid var(--border-color);">
+
+        <!-- Action Export Buttons -->
+        <div class="form-group">
+          <label class="form-label">التحكم في العرض والحركة</label>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="playAnimation()">
+              <span>▶️ تشغيل الحركة (GSAP)</span>
+            </button>
+            <button class="btn btn-secondary" onclick="resetAnimation()">
+              <span>🔄 إعادة الضبط</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">خيارات التصدير للمونتاج المباشر</label>
+          <div class="btn-row">
+            <button class="btn btn-green" onclick="exportPNG()">
+              <span>📸 تصدير PNG (1080p)</span>
+            </button>
+            <button class="btn btn-secondary" onclick="exportWebM()">
+              <span>🎥 تصدير WebM شفاف</span>
+            </button>
+          </div>
+          <button class="btn btn-secondary" style="margin-top: 8px;" onclick="showCodeModal()">
+            <span>📋 نسخ كود HyperFrames / CapCut</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Preview Stage -->
+    <div class="preview-stage">
+
+      <!-- Stage Overlay Toolbar -->
+      <div class="stage-toolbar">
+        <button class="tool-btn active" id="btnAlphaBg" onclick="toggleCheckerboard(true)">
+          <span>🏁 خلفية شفافة</span>
+        </button>
+        <button class="tool-btn" id="btnVideoBg" onclick="toggleCheckerboard(false)">
+          <span>🎥 محاكاة فيديو الطالب</span>
+        </button>
+      </div>
+
+      <!-- Scaled 16:9 Viewport -->
+      <div class="canvas-viewport" id="viewport">
+        <div id="renderRoot">
+
+          <!-- 1. SPLIT SCREEN ROOT COMPONENT -->
+          <div id="splitScreenContainer">
+            <!-- Left Half (Transparent Camera Zone) -->
+            <div class="ss-left-student" id="leftStudentZone">
+              <div class="ss-placeholder-box" id="studentPlaceholder">
+                🎥 منطقة فيديو المتحدث (شفافة 100%)
+              </div>
+            </div>
+
+            <!-- Golden Vertical Divider -->
+            <div class="ss-divider" id="ssDivider"></div>
+
+            <!-- Right Half (Document Stage) -->
+            <div class="ss-right-stage" id="ssRightStage">
+              <div class="ss-header">
+                <div class="ss-header-text" id="ssHeaderDisplay">
+                  أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | ملخص الأطروحة (3/4): مشكلة الشر في الفكر الكلامي
+                </div>
+              </div>
+
+              <div class="ss-doc-wrapper">
+                <div class="ss-doc-card" id="ssDocCard">
+                  <img id="ssDocImg" src="" alt="صفحة الأطروحة" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'800\'><rect fill=\'%23ffffff\' width=\'100%\' height=\'100%\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'28\' fill=\'%23888888\' text-anchor=\'middle\'>اسحب صورة الصفحة هنا</text></svg>'">
+                </div>
+              </div>
+
+              <div class="ss-footer">
+                <div class="ss-footer-text" id="ssFooterDisplay">
+                  عرض وتقرير ملخص الأطروحة — الباحث أحمد قبايلي
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. LOWER THIRD ROOT COMPONENT -->
+          <div id="lowerThirdContainer" style="display: none;">
+            <div class="lt-wrapper" id="ltWrapper">
+              <div class="lt-role-badge" id="ltRoleDisplay">رئيس لجنة المناقشة</div>
+              <div class="lt-main-card">
+                <div class="lt-gold-bar"></div>
+                <div class="lt-info-col">
+                  <div class="lt-name-text" id="ltNameDisplay">أ.د. شافية صديق</div>
+                  <div class="lt-affil-text" id="ltAffilDisplay">جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Hidden Offscreen Canvas for Pixel-Perfect 1920x1080 Export -->
+  <canvas id="exportCanvas" width="1920" height="1080" style="display: none;"></canvas>
+
+  <!-- Modal Code Snippet -->
+  <div class="modal-overlay" id="codeModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-size: 16px;">كود الإدراج في HyperFrames و CapCut</h3>
+        <button style="background:none; border:none; color:#fff; font-size: 20px; cursor: pointer;" onclick="document.getElementById('codeModal').style.display='none'">✕</button>
+      </div>
+      <div class="modal-code" id="codeText"></div>
+      <button class="btn btn-primary" onclick="copyCode()">📋 نسخ الكود للحافظة</button>
+    </div>
+  </div>
+
+  <script>
+    let currentMode = 'split'; // 'split' or 'lt'
+    let currentTimeline = null;
+    let isCheckerboard = true;
+
+    // Responsive Scale Viewport to match 1920x1080
+    function resizeViewport() {
+      const vp = document.getElementById('viewport');
+      const root = document.getElementById('renderRoot');
+      const scale = vp.clientWidth / 1920;
+      root.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', resizeViewport);
+    document.addEventListener('DOMContentLoaded', () => {
+      resizeViewport();
+      // Load default sample page
+      loadThesisPage('17', 'الفصل الأول: مشكلة الشر وتأطيرها إلحادياً');
+      initAnimations();
+      if (window.location.hash === '#lt') {
+        switchTab('lt');
+      }
+    });
+
+    // Tab Switching
+    function switchTab(mode) {
+      currentMode = mode;
+      document.getElementById('tabSplit').classList.toggle('active', mode === 'split');
+      document.getElementById('tabLT').classList.toggle('active', mode === 'lt');
+      document.getElementById('splitControls').style.display = mode === 'split' ? 'block' : 'none';
+      document.getElementById('ltControls').style.display = mode === 'lt' ? 'block' : 'none';
+      document.getElementById('splitScreenContainer').style.display = mode === 'split' ? 'block' : 'none';
+      document.getElementById('lowerThirdContainer').style.display = mode === 'lt' ? 'block' : 'none';
+      resetAnimation();
+    }
+
+    // Toggle Checkerboard vs Simulated Video
+    function toggleCheckerboard(alpha) {
+      isCheckerboard = alpha;
+      document.getElementById('btnAlphaBg').classList.toggle('active', alpha);
+      document.getElementById('btnVideoBg').classList.toggle('active', !alpha);
+      const vp = document.getElementById('viewport');
+      if (alpha) {
+        vp.style.background = '';
+        document.getElementById('leftStudentZone').style.background = 'transparent';
+        document.getElementById('studentPlaceholder').style.display = 'block';
+      } else {
+        vp.style.background = '#111318';
+        document.getElementById('leftStudentZone').style.background = 'linear-gradient(135deg, #1c1d24 0%, #0d0e12 100%)';
+        document.getElementById('studentPlaceholder').style.display = 'none';
+      }
+    }
+
+    // Update Split-Screen text
+    function updateSplitScreen() {
+      const hText = document.getElementById('ssHeaderInput').value;
+      const fText = document.getElementById('ssFooterInput').value;
+      document.getElementById('ssHeaderDisplay').innerText = hText;
+      document.getElementById('ssFooterDisplay').innerText = fText;
+    }
+
+    function updateDividerColor() {
+      const col = document.getElementById('dividerColor').value;
+      document.getElementById('dividerColorHex').value = col;
+      document.getElementById('ssDivider').style.background = col;
+      document.querySelector('.ss-header').style.borderBottomColor = col;
+      document.getElementById('ssFooterDisplay').style.color = col;
+    }
+
+    // File Drop & Load
+    function handleFileSelect(evt) {
+      const file = evt.target.files[0];
+      if (file) {
+        document.getElementById('dropFileName').innerText = file.name;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('ssDocImg').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Drag & Drop handlers
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        document.getElementById('fileInput').files = e.dataTransfer.files;
+        handleFileSelect({ target: { files: e.dataTransfer.files } });
+      }
+    });
+
+    // Quick Thesis Presets
+    function loadThesisPage(pageNum, titleDesc) {
+      const path = `file:///C:/Users/rhmka/Desktop/مناقشة%20الإلحاد/صفحات_المذكرة_المستخرجة/raw_page_${pageNum.padStart(3, '0')}.png`;
+      document.getElementById('ssDocImg').src = path;
+      document.getElementById('dropFileName').innerText = `أصل صفحة الأطروحة: ص ${pageNum} (${titleDesc})`;
+      if (pageNum === '17') {
+        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | الفصل الأول: مشكلة الشر وتأطيرها إلحادياً";
+      } else if (pageNum === '25') {
+        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | مرتكزات الإلحاد المعاصر ودحضها (ص 25)";
+      } else if (pageNum === '09') {
+        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | أهداف البحث وإشكاليته (ص 9)";
+      } else if (pageNum === '13') {
+        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | منهج البحث وأدواته التحليلية (ص 13)";
+      } else if (pageNum === '15') {
+        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | خطة البحث وهيكلة الفصول (ص 15)";
+      } else if (pageNum === '290') {
+        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | نتائج البحث وخاتمة الأطروحة والتوصيات";
+      } else if (pageNum === '01') {
+        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | واجهة وغلاف الأطروحة الرسمي";
+      }
+      updateSplitScreen();
+    }
+
+    // Lower-Thirds Logic
+    function updateLowerThird() {
+      document.getElementById('ltRoleDisplay').innerText = document.getElementById('ltRoleInput').value;
+      document.getElementById('ltNameDisplay').innerText = document.getElementById('ltNameInput').value;
+      document.getElementById('ltAffilDisplay').innerText = document.getElementById('ltAffilInput').value;
+    }
+
+    function applyLTPreset(key) {
+      const data = {
+        chafia: { role: "رئيس لجنة المناقشة", name: "أ.د. شافية صديق", affil: "جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)" },
+        akkak: { role: "عضو لجنة المناقشة (مناقش أول)", name: "أ.د. عبد الغني عكاك", affil: "جامعة الجزائر 1 — كلية العلوم الإسلامية" },
+        chennouf: { role: "عضو لجنة المناقشة (مناقش ثانٍ)", name: "أ.د. ناجي شنوف", affil: "جامعة المدية — كلية العلوم الإنسانية والاجتماعية" },
+        chentouh: { role: "عضو لجنة المناقشة (مناقشة ثالثة)", name: "أ.د. ليليا شنتوح", affil: "جامعة الجزائر 1 — كلية العلوم الإسلامية" },
+        addar: { role: "المشرف والمقرر", name: "أ.د. يوسف عدار", affil: "جامعة الجزائر 1 — كلية العلوم الإسلامية" },
+        kabaili: { role: "الباحث المترشح", name: "الباحث أحمد قبايلي", affil: "أطروحة دكتوراه الطور الثالث (LMD) — العقيدة ومقارنة الأديان" }
+      };
+      if (data[key]) {
+        document.getElementById('ltRoleInput').value = data[key].role;
+        document.getElementById('ltNameInput').value = data[key].name;
+        document.getElementById('ltAffilInput').value = data[key].affil;
+        updateLowerThird();
+        playAnimation();
+      }
+    }
+
+    // GSAP ANIMATIONS
+    function initAnimations() {
+      // Setup initial states
+      gsap.set("#ssRightStage", { x: 0, opacity: 1 });
+      gsap.set("#ssDocCard", { scale: 1, opacity: 1 });
+      gsap.set("#ltWrapper", { y: 0, opacity: 1 });
+    }
+
+    function playAnimation() {
+      if (currentTimeline) currentTimeline.kill();
+      currentTimeline = gsap.timeline();
+
+      if (currentMode === 'split') {
+        currentTimeline
+          .set("#ssRightStage", { x: 960, opacity: 0 })
+          .set("#ssDivider", { scaleY: 0, opacity: 0 })
+          .set("#ssDocCard", { scale: 0.9, opacity: 0 })
+          .to("#ssDivider", { scaleY: 1, opacity: 1, duration: 0.4, ease: "power2.out" })
+          .to("#ssRightStage", { x: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, "-=0.2")
+          .to("#ssDocCard", { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.2)" }, "-=0.3")
+          .to({}, { duration: 3.5 }) // Hold on screen
+          .to("#ssDocCard", { scale: 0.95, opacity: 0, duration: 0.4, ease: "power2.in" })
+          .to("#ssRightStage", { x: 960, opacity: 0, duration: 0.6, ease: "power3.in" }, "-=0.2")
+          .to("#ssDivider", { opacity: 0, duration: 0.2 }, "-=0.1");
+      } else {
+        currentTimeline
+          .set("#ltWrapper", { y: 60, opacity: 0 })
+          .set(".lt-gold-bar", { scaleY: 0.2 })
+          .to("#ltWrapper", { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" })
+          .to(".lt-gold-bar", { scaleY: 1.2, duration: 0.3, yoyo: true, repeat: 1 }, "-=0.2")
+          .to({}, { duration: 4.0 }) // Hold on screen
+          .to("#ltWrapper", { y: 40, opacity: 0, duration: 0.5, ease: "power3.in" });
+      }
+    }
+
+    function resetAnimation() {
+      if (currentTimeline) currentTimeline.kill();
+      gsap.set("#ssRightStage", { x: 0, opacity: 1 });
+      gsap.set("#ssDivider", { scaleY: 1, opacity: 1 });
+      gsap.set("#ssDocCard", { scale: 1, opacity: 1 });
+      gsap.set("#ltWrapper", { y: 0, opacity: 1 });
+    }
+
+    // EXPORT HIGH-RES PNG (1920x1080)
+    function exportPNG() {
+      const canvas = document.getElementById('exportCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 1920, 1080);
+      ctx.direction = 'rtl';
+
+      if (currentMode === 'split') {
+        // Draw Right Stage background
+        ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
+        ctx.fillRect(960, 0, 960, 1080);
+
+        // Draw Golden Divider
+        const divCol = document.getElementById('dividerColor').value;
+        ctx.fillStyle = divCol;
+        ctx.fillRect(960, 0, 4, 1080);
+
+        // Header Bar
+        ctx.fillStyle = "#1E222C";
+        roundRect(ctx, 980, 24, 900, 68, 8, true);
+        ctx.fillStyle = divCol;
+        ctx.fillRect(980, 89, 900, 3);
+
+        // Header Text
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(document.getElementById('ssHeaderInput').value, 1430, 64);
+
+        // Draw Document Image
+        const img = document.getElementById('ssDocImg');
+        if (img && img.naturalWidth) {
+          const maxW = 640;
+          const maxH = 840;
+          const ratio = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
+          const dw = img.naturalWidth * ratio;
+          const dh = img.naturalHeight * ratio;
+          const dx = 960 + (960 - dw) / 2;
+          const dy = 110 + (860 - dh) / 2;
+
+          // Card Shadow & White Bg
+          ctx.save();
+          ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+          ctx.shadowBlur = 40;
+          ctx.shadowOffsetY = 15;
+          ctx.fillStyle = "#FFFFFF";
+          roundRect(ctx, dx, dy, dw, dh, 6, true);
+          ctx.restore();
+
+          ctx.drawImage(img, dx, dy, dw, dh);
+        }
+
+        // Footer Text
+        ctx.fillStyle = divCol;
+        ctx.font = "800 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(document.getElementById('ssFooterInput').value, 1430, 1045);
+
+      } else {
+        // Draw Lower Third
+        const role = document.getElementById('ltRoleInput').value;
+        const name = document.getElementById('ltNameInput').value;
+        const affil = document.getElementById('ltAffilInput').value;
+        const divCol = "#FFC61A";
+
+        // Measure text for adaptive box
+        ctx.font = "800 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        const nameW = ctx.measureText(name).width;
+        ctx.font = "600 18px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        const affilW = ctx.measureText(affil).width;
+        const boxW = Math.max(nameW, affilW) + 120;
+
+        const bx = 100;
+        const by = 1080 - 85 - 110;
+
+        // Role Badge
+        ctx.fillStyle = divCol;
+        roundRect(ctx, bx, by - 36, 220, 38, 8, true);
+        ctx.fillStyle = "#111111";
+        ctx.font = "900 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(role, bx + 220 - 24, by - 10);
+
+        // Main Card
+        ctx.save();
+        ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+        ctx.shadowBlur = 35;
+        ctx.shadowOffsetY = 14;
+        ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
+        roundRect(ctx, bx, by, boxW, 110, 14, true);
+        ctx.strokeStyle = divCol;
+        ctx.lineWidth = 2;
+        roundRect(ctx, bx, by, boxW, 110, 14, false);
+        ctx.restore();
+
+        // Gold Indicator Mark
+        ctx.fillStyle = divCol;
+        roundRect(ctx, bx + boxW - 24, by + 24, 8, 62, 4, true);
+
+        // Name & Affiliation
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "800 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(name, bx + boxW - 46, by + 52);
+
+        ctx.fillStyle = "#9ca3af";
+        ctx.font = "600 18px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.fillText(affil, bx + boxW - 46, by + 88);
+      }
+
+      // Download PNG
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = currentMode === 'split' ? 'joussour_split_screen_1080p.png' : 'joussour_lower_third_1080p.png';
+        a.click();
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    }
+
+    // Helper for Rounded Rectangles on Canvas
+    function roundRect(ctx, x, y, width, height, radius, fill) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) ctx.fill(); else ctx.stroke();
+    }
+
+    // EXPORT TRANSPARENT WEBM (ALPHA CHANNEL)
+    async function exportWebM() {
+      alert("جاري تسجيل وتصدير المقطع الشفاف بدقة 1080p... يرجى الانتظار بضع ثوانٍ");
+      const canvas = document.getElementById('exportCanvas');
+      const ctx = canvas.getContext('2d');
+      const stream = canvas.captureStream(30);
+      let recorder;
+      try {
+        recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+      } catch (e) {
+        recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+      }
+
+      const chunks = [];
+      recorder.ondataavailable = e => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = currentMode === 'split' ? 'joussour_split_screen_transparent.webm' : 'joussour_lower_third_transparent.webm';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      recorder.start();
+      playAnimation();
+
+      // Render frames continuously for the animation duration (5.5s)
+      const startTime = performance.now();
+      const animInterval = setInterval(() => {
+        // Redraw stage to export canvas
+        drawStageToCanvas();
+        if (performance.now() - startTime > 5500) {
+          clearInterval(animInterval);
+          recorder.stop();
+        }
+      }, 1000 / 30);
+    }
+
+    function drawStageToCanvas() {
+      // Re-trigger draw frame to canvas during recording
+      exportPNGDrawOnly();
+    }
+
+    function exportPNGDrawOnly() {
+      // Same draw logic without downloading blob
+      const canvas = document.getElementById('exportCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 1920, 1080);
+      ctx.direction = 'rtl';
+
+      if (currentMode === 'split') {
+        const stageEl = document.getElementById('ssRightStage');
+        const matrix = window.getComputedStyle(stageEl).transform;
+        let transX = 0;
+        let opacity = parseFloat(window.getComputedStyle(stageEl).opacity);
+        if (matrix !== 'none') {
+          const values = matrix.split('(')[1].split(')')[0].split(',');
+          transX = parseFloat(values[4]) || 0;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.translate(transX, 0);
+
+        ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
+        ctx.fillRect(960, 0, 960, 1080);
+
+        const divCol = document.getElementById('dividerColor').value;
+        ctx.fillStyle = divCol;
+        ctx.fillRect(960, 0, 4, 1080);
+
+        ctx.fillStyle = "#1E222C";
+        roundRect(ctx, 980, 24, 900, 68, 8, true);
+        ctx.fillStyle = divCol;
+        ctx.fillRect(980, 89, 900, 3);
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(document.getElementById('ssHeaderInput').value, 1430, 64);
+
+        const img = document.getElementById('ssDocImg');
+        if (img && img.naturalWidth) {
+          const maxW = 640;
+          const maxH = 840;
+          const ratio = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
+          const dw = img.naturalWidth * ratio;
+          const dh = img.naturalHeight * ratio;
+          const dx = 960 + (960 - dw) / 2;
+          const dy = 110 + (860 - dh) / 2;
+          ctx.fillStyle = "#FFFFFF";
+          roundRect(ctx, dx, dy, dw, dh, 6, true);
+          ctx.drawImage(img, dx, dy, dw, dh);
+        }
+
+        ctx.fillStyle = divCol;
+        ctx.font = "800 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(document.getElementById('ssFooterInput').value, 1430, 1045);
+        ctx.restore();
+
+      } else {
+        const ltEl = document.getElementById('ltWrapper');
+        const matrix = window.getComputedStyle(ltEl).transform;
+        let transY = 0;
+        let opacity = parseFloat(window.getComputedStyle(ltEl).opacity);
+        if (matrix !== 'none') {
+          const values = matrix.split('(')[1].split(')')[0].split(',');
+          transY = parseFloat(values[5]) || 0;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.translate(0, transY);
+
+        const role = document.getElementById('ltRoleInput').value;
+        const name = document.getElementById('ltNameInput').value;
+        const affil = document.getElementById('ltAffilInput').value;
+        const divCol = "#FFC61A";
+
+        ctx.font = "800 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        const nameW = ctx.measureText(name).width;
+        ctx.font = "600 18px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        const affilW = ctx.measureText(affil).width;
+        const boxW = Math.max(nameW, affilW) + 120;
+
+        const bx = 100;
+        const by = 1080 - 85 - 110;
+
+        ctx.fillStyle = divCol;
+        roundRect(ctx, bx, by - 36, 220, 38, 8, true);
+        ctx.fillStyle = "#111111";
+        ctx.font = "900 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(role, bx + 220 - 24, by - 10);
+
+        ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
+        roundRect(ctx, bx, by, boxW, 110, 14, true);
+        ctx.strokeStyle = divCol;
+        ctx.lineWidth = 2;
+        roundRect(ctx, bx, by, boxW, 110, 14, false);
+
+        ctx.fillStyle = divCol;
+        roundRect(ctx, bx + boxW - 24, by + 24, 8, 62, 4, true);
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "800 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(name, bx + boxW - 46, by + 52);
+
+        ctx.fillStyle = "#9ca3af";
+        ctx.font = "600 18px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.fillText(affil, bx + boxW - 46, by + 88);
+        ctx.restore();
+      }
+    }
+
+    // SHOW CODE SNIPPET MODAL
+    function showCodeModal() {
+      const modal = document.getElementById('codeModal');
+      const codeBox = document.getElementById('codeText');
+      if (currentMode === 'split') {
+        const header = document.getElementById('ssHeaderInput').value;
+        const footer = document.getElementById('ssFooterInput').value;
+        codeBox.innerText = `# كود بايثون لإدراج الشاشة المنقسمة في CapCut / PyCapCut:
+mat_ss = cc.VideoMaterial("split_screen_export.png")
+script.add_material(mat_ss)
+seg_ss = cc.VideoSegment(
+    mat_ss,
+    target_timerange=cc.trange(sec_to_us(target_start_sec), sec_to_us(45.0))
+)
+script.add_segment(seg_ss, track_name="track_v2_split_screens")
+
+# أمر رندر HyperFrames عبر الطرفية:
+npx hyperframes render --format webm --alpha -o split_screen.webm`;
+      } else {
+        const role = document.getElementById('ltRoleInput').value;
+        const name = document.getElementById('ltNameInput').value;
+        codeBox.innerText = `# كود بايثون لشريط التعريف في مسودة CapCut:
+mat_lt = cc.VideoMaterial("lower_third_${name}.png")
+script.add_material(mat_lt)
+seg_lt = cc.VideoSegment(
+    mat_lt,
+    target_timerange=cc.trange(sec_to_us(target_start_sec), sec_to_us(12.0))
+)
+script.add_segment(seg_lt, track_name="track_v3_lower_thirds")
+
+# أمر رندر HyperFrames لشريط التعريف:
+npx hyperframes render lower_third_template.html --format webm -o lower_third.webm`;
+      }
+      modal.style.display = 'flex';
+    }
+
+    function copyCode() {
+      const txt = document.getElementById('codeText').innerText;
+      navigator.clipboard.writeText(txt).then(() => {
+        alert("تم نسخ الكود بنجاح إلى الحافظة!");
+      });
+    }
+  </script>
+</body>
+</html>
