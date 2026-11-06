@@ -859,7 +859,7 @@
       <div class="canvas-viewport bg-checker" id="viewport">
 
         <!-- Mock background image for camera preview -->
-        <img id="mockVideoEl" class="mock-video-bg" src="https://images.unsplash.com/photo-1576495199011-eb94736d05d6?auto=format&fit=crop&w=1920&q=80" alt="Mock Stage">
+        <img id="mockVideoEl" class="mock-video-bg" src="assets/candidate_mock.jpg" alt="Mock Stage">
 
         <!-- Broadcast Safe Area Overlay -->
         <div class="safe-area-overlay" id="safeAreaOverlay">
@@ -1004,8 +1004,11 @@
       resizeViewport();
       loadThesisPage('17', 'الفصل الأول: مشكلة الشر وتأطيرها إلحادياً');
       initAnimations();
-      if (window.location.hash === '#lt') {
+      if (window.location.hash.includes('lt')) {
         switchTab('lt');
+      }
+      if (window.location.hash.includes('video')) {
+        setStageBg('video');
       }
     });
 
@@ -1018,6 +1021,9 @@
       document.getElementById('ltControls').style.display = mode === 'lt' ? 'block' : 'none';
       document.getElementById('splitScreenContainer').style.display = mode === 'split' ? 'block' : 'none';
       document.getElementById('lowerThirdContainer').style.display = mode === 'lt' ? 'block' : 'none';
+      if (currentStageBgType === 'video') {
+        updateMockVideoSource();
+      }
       resetAnimation();
     }
 
@@ -1057,7 +1063,10 @@
       document.getElementById('holdDurationLabel').innerText = holdDuration.toFixed(1) + ' ثانية';
     }
 
+    let currentStageBgType = 'checker';
+
     function setStageBg(type) {
+      currentStageBgType = type;
       const vp = document.getElementById('viewport');
       const mock = document.getElementById('mockVideoEl');
       vp.classList.remove('bg-checker', 'bg-chroma-green', 'bg-pure-black');
@@ -1069,11 +1078,25 @@
       if (type === 'video') {
         vp.classList.add('bg-pure-black');
         mock.style.display = 'block';
+        updateMockVideoSource();
       }
 
       document.getElementById('btnAlphaBg').classList.toggle('active', type === 'checker');
       document.getElementById('btnChromaBg').classList.toggle('active', type === 'chroma');
       document.getElementById('btnVideoBg').classList.toggle('active', type === 'video');
+    }
+
+    function updateMockVideoSource() {
+      const mock = document.getElementById('mockVideoEl');
+      if (currentMode === 'split') {
+        // Authentic frame of researcher Ahmed Kabaili shifted to left half
+        mock.src = 'assets/candidate_mock.jpg';
+        mock.style.objectPosition = '28% center';
+      } else {
+        // Authentic frame of Committee (Prof. Chafia Seddik & Prof. Lilia Chentouh)
+        mock.src = 'assets/committee_mock.jpg';
+        mock.style.objectPosition = 'center center';
+      }
     }
 
     function toggleSafeAreas() {
