@@ -4,25 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>استوديو جسور للمونتاج الأكاديمي — Joussour Montage Studio</title>
-  <!-- Google Fonts: Cairo & IBM Plex Sans Arabic -->
+  <!-- Google Fonts: Cairo, IBM Plex Sans Arabic, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <!-- GSAP CDN -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <!-- JSZip CDN for Image Sequence Export -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
   <style>
     :root {
-      --bg-dark: #0a0b0e;
-      --panel-bg: #12141c;
-      --card-bg: #1a1d28;
-      --border-color: #272b3c;
+      --bg-dark: #08090d;
+      --panel-bg: #11131a;
+      --card-bg: #181b24;
+      --border-color: #262938;
       --gold: #FFC61A;
       --gold-hover: #ffd44d;
-      --gold-glow: rgba(255, 198, 26, 0.35);
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent-blue: #3b82f6;
+      --gold-glow: rgba(255, 198, 26, 0.4);
+      --gold-subtle: rgba(255, 198, 26, 0.12);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
       --success-green: #10b981;
+      --danger-red: #ef4444;
     }
 
     * {
@@ -42,15 +47,16 @@
       direction: rtl;
     }
 
-    /* Top Bar */
+    /* Top Navigation Bar */
     header {
       background: var(--panel-bg);
       border-bottom: 2px solid var(--border-color);
-      padding: 12px 24px;
+      padding: 10px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
+      z-index: 40;
     }
     .brand-wrap {
       display: flex;
@@ -61,25 +67,29 @@
       background: var(--gold);
       color: #111;
       font-weight: 900;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 14px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 13px;
       letter-spacing: 0.5px;
+      box-shadow: 0 0 15px var(--gold-glow);
     }
     .brand-title {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
       color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .brand-sub {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
       margin-top: -2px;
     }
 
     .tabs-nav {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       background: var(--bg-dark);
       padding: 4px;
       border-radius: 10px;
@@ -89,8 +99,8 @@
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 8px 18px;
-      font-size: 14px;
+      padding: 7px 18px;
+      font-size: 13px;
       font-weight: 700;
       border-radius: 8px;
       cursor: pointer;
@@ -102,7 +112,8 @@
     .tab-btn.active {
       background: var(--gold);
       color: #111;
-      box-shadow: 0 2px 10px var(--gold-glow);
+      font-weight: 900;
+      box-shadow: 0 2px 12px var(--gold-glow);
     }
 
     .top-actions {
@@ -112,12 +123,12 @@
     }
     .status-pill {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      background: rgba(16, 185, 129, 0.15);
+      font-size: 11px;
+      background: rgba(16, 185, 129, 0.12);
       color: var(--success-green);
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 20px;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      border: 1px solid rgba(16, 185, 129, 0.25);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -130,14 +141,14 @@
       box-shadow: 0 0 8px var(--success-green);
     }
 
-    /* Main Workspace Layout */
+    /* Main Workspace */
     .workspace {
       display: flex;
       flex: 1;
       overflow: hidden;
     }
 
-    /* Left Control Sidebar */
+    /* Sidebar Controls */
     .sidebar {
       width: 440px;
       background: var(--panel-bg);
@@ -148,19 +159,31 @@
       overflow-y: auto;
     }
     .sidebar-inner {
-      padding: 20px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      margin-bottom: 2px;
     }
 
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     .form-label {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text-main);
       display: flex;
@@ -176,11 +199,11 @@
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       color: #fff;
-      padding: 10px 14px;
+      padding: 9px 12px;
       border-radius: 8px;
       font-size: 13px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
     }
     input[type="text"]:focus, textarea:focus, select:focus {
       border-color: var(--gold);
@@ -188,20 +211,20 @@
     }
     textarea {
       resize: vertical;
-      min-height: 65px;
+      min-height: 55px;
     }
 
     .presets-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .preset-pill {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 4px 10px;
+      padding: 4px 9px;
       border-radius: 6px;
       font-size: 11px;
       font-weight: 600;
@@ -211,52 +234,24 @@
     .preset-pill:hover {
       border-color: var(--gold);
       color: var(--gold);
-    }
-
-    .dropzone {
-      border: 2px dashed var(--border-color);
-      background: rgba(26, 29, 40, 0.5);
-      border-radius: 10px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-    .dropzone:hover, .dropzone.dragover {
-      border-color: var(--gold);
-      background: rgba(255, 198, 26, 0.05);
-    }
-    .dropzone-icon {
-      font-size: 28px;
-    }
-    .dropzone-text {
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .dropzone-sub {
-      font-size: 11px;
-      color: var(--text-muted);
+      background: var(--gold-subtle);
     }
 
     .btn-row {
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
     .btn {
       flex: 1;
-      padding: 11px 16px;
+      padding: 10px 14px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       border: none;
       transition: all 0.2s;
     }
@@ -274,8 +269,8 @@
       color: var(--text-main);
     }
     .btn-secondary:hover {
-      background: #252938;
-      border-color: #3b4055;
+      background: #232734;
+      border-color: #383e54;
     }
     .btn-green {
       background: #10b981;
@@ -285,40 +280,50 @@
       background: #059669;
       box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
     }
+    .btn-chroma {
+      background: #15803d;
+      color: #fff;
+      border: 1px solid #22c55e;
+    }
+    .btn-chroma:hover {
+      background: #16a34a;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    }
 
-    /* Right Preview Stage */
+    /* Preview Stage */
     .preview-stage {
       flex: 1;
-      background: #08090c;
+      background: #06070a;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 30px;
+      padding: 24px;
       position: relative;
       overflow: hidden;
     }
 
     .stage-toolbar {
       position: absolute;
-      top: 20px;
+      top: 16px;
       display: flex;
-      gap: 12px;
-      background: rgba(18, 20, 28, 0.85);
-      backdrop-filter: blur(10px);
+      gap: 8px;
+      background: rgba(17, 19, 26, 0.9);
+      backdrop-filter: blur(12px);
       border: 1px solid var(--border-color);
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 30px;
       z-index: 50;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
     .tool-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       cursor: pointer;
-      padding: 4px 8px;
+      padding: 4px 9px;
       border-radius: 6px;
       transition: all 0.15s;
       display: flex;
@@ -327,30 +332,94 @@
     }
     .tool-btn:hover, .tool-btn.active {
       color: var(--gold);
-      background: rgba(255, 198, 26, 0.1);
+      background: var(--gold-subtle);
     }
 
-    /* 16:9 Canvas Viewport Container */
+    /* 16:9 Canvas Viewport */
     .canvas-viewport {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1040px;
       aspect-ratio: 16 / 9;
-      background-image: 
-        linear-gradient(45deg, #13151f 25%, transparent 25%), 
-        linear-gradient(-45deg, #13151f 25%, transparent 25%), 
-        linear-gradient(45deg, transparent 75%, #13151f 75%), 
-        linear-gradient(-45deg, transparent 75%, #13151f 75%);
       background-size: 24px 24px;
       background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
-      border: 1px solid var(--border-color);
+      border: 2px solid var(--border-color);
       border-radius: 12px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
       position: relative;
       overflow: hidden;
       transform-origin: center center;
     }
+    .bg-checker {
+      background-image: 
+        linear-gradient(45deg, #11131a 25%, transparent 25%), 
+        linear-gradient(-45deg, #11131a 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #11131a 75%), 
+        linear-gradient(-45deg, transparent 75%, #11131a 75%);
+    }
+    .bg-chroma-green {
+      background: #00FF00 !important;
+    }
+    .bg-pure-black {
+      background: #000000 !important;
+    }
 
-    /* Virtual Full-HD 1920x1080 Root Scaled to Viewport */
+    /* Mock video background */
+    .mock-video-bg {
+      position: absolute;
+      inset: 0;
+      object-fit: cover;
+      width: 100%;
+      height: 100%;
+      opacity: 0.85;
+      display: none;
+    }
+
+    /* Safe Area Guides */
+    .safe-area-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+      z-index: 30;
+    }
+    .action-safe {
+      position: absolute;
+      top: 5%;
+      left: 5%;
+      right: 5%;
+      bottom: 5%;
+      border: 1px dashed rgba(56, 189, 248, 0.45);
+      border-radius: 4px;
+    }
+    .action-safe::before {
+      content: "Action Safe (90%)";
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: rgba(56, 189, 248, 0.6);
+    }
+    .title-safe {
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      right: 10%;
+      bottom: 10%;
+      border: 1px dashed rgba(255, 198, 26, 0.55);
+      border-radius: 4px;
+    }
+    .title-safe::before {
+      content: "Title Safe (80%)";
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: rgba(255, 198, 26, 0.8);
+    }
+
+    /* Virtual Full-HD 1920x1080 Root */
     #renderRoot {
       width: 1920px;
       height: 1080px;
@@ -361,17 +430,13 @@
       pointer-events: none;
     }
 
-    /* ==============================================================
-       SPLIT-SCREEN OVERLAY STYLES
-       ============================================================== */
+    /* SPLIT-SCREEN STYLES */
     #splitScreenContainer {
       width: 1920px;
       height: 1080px;
       position: relative;
       overflow: hidden;
     }
-
-    /* Left half transparent student zone (X: 0 to 960) */
     .ss-left-student {
       position: absolute;
       top: 0;
@@ -386,13 +451,11 @@
       border: 2px dashed rgba(255, 255, 255, 0.2);
       border-radius: 12px;
       padding: 16px 28px;
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.45);
       font-size: 20px;
       font-weight: 700;
       background: rgba(0, 0, 0, 0.4);
     }
-
-    /* Vertical Golden Divider */
     .ss-divider {
       position: absolute;
       top: 0;
@@ -400,61 +463,57 @@
       width: 4px;
       height: 1080px;
       background: var(--gold);
-      box-shadow: 0 0 20px var(--gold-glow);
-      z-index: 20;
+      box-shadow: 0 0 20px var(--gold);
+      transform-origin: center;
     }
-
-    /* Right half document stage (X: 960 to 1920) */
     .ss-right-stage {
       position: absolute;
       top: 0;
-      left: 960px;
-      width: 960px;
+      left: 964px;
+      width: 956px;
       height: 1080px;
-      background: rgba(18, 20, 26, 0.97);
+      background: rgba(14, 16, 22, 0.97);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 24px 34px;
-      z-index: 10;
+      padding: 24px 30px;
+      direction: rtl;
     }
-
-    /* Header Bar */
     .ss-header {
       width: 100%;
-      background: #1E222C;
-      border-bottom: 3px solid var(--gold);
+      background: #181c26;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
-      padding: 13px 22px;
+      padding: 14px 20px;
       display: flex;
-      justify-content: center;
       align-items: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      position: relative;
+      overflow: hidden;
+    }
+    .ss-header::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      height: 3px;
+      background: var(--gold);
     }
     .ss-header-text {
-      color: #FFFFFF;
-      font-size: 21px;
-      font-weight: 700;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
       text-align: center;
-      line-height: 1.3;
-    }
-
-    /* Center Document Card */
-    .ss-doc-wrapper {
-      flex: 1;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px 0;
     }
     .ss-doc-card {
       max-height: 840px;
       max-width: 640px;
       background: #FFFFFF;
       border-radius: 8px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.75);
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.25);
       display: flex;
@@ -467,25 +526,13 @@
       object-fit: contain;
       display: block;
     }
-
-    /* Footer Presenter Tag */
-    .ss-footer {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 8px 0;
-    }
     .ss-footer-text {
       color: var(--gold);
-      font-size: 21px;
+      font-size: 22px;
       font-weight: 800;
-      letter-spacing: 0.3px;
     }
 
-    /* ==============================================================
-       LOWER-THIRD OVERLAY STYLES
-       ============================================================== */
+    /* LOWER-THIRD STYLES */
     #lowerThirdContainer {
       width: 1920px;
       height: 1080px;
@@ -494,66 +541,73 @@
     }
     .lt-wrapper {
       position: absolute;
-      bottom: 85px;
-      left: 100px;
+      bottom: 90px;
+      right: 100px;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: flex-end;
       direction: rtl;
-      filter: drop-shadow(0 16px 30px rgba(0,0,0,0.75));
+      filter: drop-shadow(0 16px 30px rgba(0,0,0,0.85));
     }
+    .lt-wrapper.pos-center {
+      right: 50% !important;
+      transform: translateX(50%);
+    }
+    .lt-wrapper.pos-left {
+      right: auto !important;
+      left: 100px !important;
+      align-items: flex-end;
+    }
+
+    /* Style 1: Signature Carbon & Gold */
     .lt-role-badge {
       background: var(--gold);
       color: #111111;
       font-weight: 900;
-      font-size: 22px;
-      padding: 6px 26px;
+      font-size: 21px;
+      padding: 6px 24px;
       border-radius: 8px 8px 0 0;
-      letter-spacing: 0.5px;
       box-shadow: 0 4px 15px var(--gold-glow);
       border: 1px solid rgba(255, 255, 255, 0.4);
       border-bottom: none;
     }
     .lt-main-card {
-      background: linear-gradient(135deg, rgba(18, 20, 26, 0.97) 0%, rgba(28, 32, 44, 0.97) 100%);
+      background: linear-gradient(135deg, rgba(16, 18, 25, 0.98) 0%, rgba(24, 28, 40, 0.98) 100%);
       border: 2px solid var(--gold);
       border-radius: 0 14px 14px 14px;
-      padding: 16px 36px;
+      padding: 16px 28px 18px 34px;
       display: flex;
       align-items: center;
-      gap: 22px;
-      box-shadow: 0 12px 35px rgba(0,0,0,0.55);
+      gap: 18px;
+      position: relative;
     }
     .lt-gold-bar {
-      width: 10px;
-      height: 48px;
+      width: 8px;
+      height: 62px;
       background: var(--gold);
       border-radius: 4px;
       box-shadow: 0 0 12px var(--gold-glow);
     }
-    .lt-info-col {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
     .lt-name-text {
       color: #FFFFFF;
       font-size: 34px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: 0.3px;
     }
     .lt-affil-text {
-      color: var(--text-muted);
+      color: #94a3b8;
       font-size: 18px;
       font-weight: 600;
+      margin-top: 4px;
     }
 
-    /* Modal for Code Export */
+    /* Modal dialogs */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(5px);
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -563,28 +617,23 @@
       background: var(--panel-bg);
       border: 1px solid var(--border-color);
       border-radius: 14px;
-      width: 650px;
+      width: 620px;
       max-width: 90%;
-      padding: 24px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.9);
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      gap: 14px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.95);
     }
     .modal-code {
       font-family: 'JetBrains Mono', monospace;
       background: #090a0e;
       border: 1px solid var(--border-color);
-      padding: 16px;
+      padding: 14px;
       border-radius: 8px;
       color: #7dd3fc;
-      font-size: 13px;
-      max-height: 300px;
+      font-size: 12px;
+      max-height: 280px;
       overflow-y: auto;
       white-space: pre-wrap;
       direction: ltr;
@@ -599,8 +648,11 @@
     <div class="brand-wrap">
       <div class="brand-badge">نادي جسور</div>
       <div>
-        <div class="brand-title">استوديو جسور للمونتاج الأكاديمي</div>
-        <div class="brand-sub">مولّد الشاشات المنقسمة وأشرطة التعريف المتحركة — كلية العلوم الإسلامية</div>
+        <div class="brand-title">
+          <span>استوديو جسور للمونتاج الأكاديمي</span>
+          <span style="font-size: 11px; background: rgba(255,198,26,0.15); color: var(--gold); padding: 2px 8px; border-radius: 4px;">v2.5 Pro</span>
+        </div>
+        <div class="brand-sub">نظام إخراج الشاشات المنقسمة وأشرطة التعريف المتحركة — كلية العلوم الإسلامية خروبة</div>
       </div>
     </div>
 
@@ -614,201 +666,227 @@
       </button>
     </div>
 
-    <!-- Status & Quick Info -->
+    <!-- Actions & Status -->
     <div class="top-actions">
       <div class="status-pill">
         <div class="status-dot"></div>
-        <span>1080p Full-HD · 30 FPS</span>
+        <span>1080p FHD • 30 FPS • 16:9 Broadcast</span>
       </div>
     </div>
   </header>
 
-  <!-- Main Workspace -->
+  <!-- Workspace -->
   <div class="workspace">
 
-    <!-- Left Controls Panel -->
+    <!-- Controls Sidebar -->
     <div class="sidebar">
       <div class="sidebar-inner">
 
-        <!-- TAB 1: SPLIT SCREEN CONTROLS -->
+        <!-- 1. SPLIT-SCREEN CONTROLS -->
         <div id="splitControls">
+          <div class="section-title">
+            <span>📄 إعدادات وثيقة الأطروحة والشاشة</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">العنوان العلوي للشاشة</label>
+            <input type="text" id="ssHeaderInput" value="أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | ملخص الأطروحة" oninput="updateSplitScreenUI()">
+          </div>
+
           <div class="form-group">
             <label class="form-label">
-              <span>صورة الوثيقة أو صفحة الأطروحة</span>
-              <span class="form-hint">PNG أو JPG عالية الدقة</span>
+              <span>صفحة الأطروحة (صورة PNG أو غلاف)</span>
+              <span class="form-hint">اسحب وأفلت أو اختر نموذجاً</span>
             </label>
-            <div class="dropzone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-              <div class="dropzone-icon">📄</div>
-              <div class="dropzone-text" id="dropFileName">انقر لاختيار صفحة، أو اسحب الصورة هنا</div>
-              <div class="dropzone-sub">يدعم صفحات PDF المستخرجة والمطبوعة</div>
-              <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+            <input type="file" id="ssFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+            <div class="preset-pill" style="text-align:center; padding: 12px; border-style:dashed;" onclick="document.getElementById('ssFileInput').click()">
+              📁 اضغط هنا لاختيار صورة من جهازك
             </div>
-            <!-- PhD Thesis Quick Presets -->
             <div class="presets-row">
-              <span style="font-size: 11px; color: var(--text-muted); width: 100%;">صفحات أطروحة د. أحمد قبايلي الجاهزة:</span>
-              <button class="preset-pill" onclick="loadThesisPage('17', 'الفصل الأول: مشكلة الشر وتأطيرها إلحادياً')">ص 17 (الشر)</button>
-              <button class="preset-pill" onclick="loadThesisPage('25', 'مرتكزات الإلحاد المعاصر ودحضها')">ص 25 (الإلحاد)</button>
-              <button class="preset-pill" onclick="loadThesisPage('09', 'أهداف البحث وإشكاليته')">ص 9 (الأهداف)</button>
-              <button class="preset-pill" onclick="loadThesisPage('13', 'منهج البحث وأدواته')">ص 13 (المنهج)</button>
-              <button class="preset-pill" onclick="loadThesisPage('15', 'خطة البحث وهيكلة الفصول')">ص 15 (الخطة)</button>
-              <button class="preset-pill" onclick="loadThesisPage('290', 'نتائج الأطروحة والتوصيات')">ص 290 (النتائج)</button>
-              <button class="preset-pill" onclick="loadThesisPage('01', 'واجهة الأطروحة الرسمية')">ص 1 (الواجهة)</button>
+              <span class="preset-pill" onclick="loadThesisPage('01', 'واجهة الأطروحة وبيانات الطالب')">واجهة الأطروحة</span>
+              <span class="preset-pill" onclick="loadThesisPage('09', 'أهداف البحث وإشكالياته')">الأهداف والإشكالية</span>
+              <span class="preset-pill" onclick="loadThesisPage('13', 'المنهج المتبع في الأطروحة')">المنهج</span>
+              <span class="preset-pill" onclick="loadThesisPage('17', 'الفصل الأول: مشكلة الشر')">مشكلة الشر (ص 17)</span>
+              <span class="preset-pill" onclick="loadThesisPage('25', 'ملاحظات الأستاذة شنتوح')">ملاحظة ص 25</span>
+              <span class="preset-pill" onclick="loadThesisPage('290', 'خاتمة البحث وأهم النتائج')">النتائج (ص 290)</span>
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">العنوان العلوي (الشريط الأعلى)</label>
-            <textarea id="ssHeaderInput" rows="2" oninput="updateSplitScreen()">أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | ملخص الأطروحة (3/4): مشكلة الشر في الفكر الكلامي</textarea>
+            <label class="form-label">الشريط السفلي (اسم الباحث / رقم الصفحة)</label>
+            <input type="text" id="ssFooterInput" value="عرض وتقرير ملخص الأطروحة — الباحث أحمد قبايلي" oninput="updateSplitScreenUI()">
           </div>
 
           <div class="form-group">
-            <label class="form-label">العنوان السفلي / صفة المتحدث</label>
-            <input type="text" id="ssFooterInput" value="عرض وتقرير ملخص الأطروحة — الباحث أحمد قبايلي" oninput="updateSplitScreen()">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">لون الخط الفاصل وهوية النادي</label>
-            <div style="display: flex; gap: 10px; align-items: center;">
-              <input type="color" id="dividerColor" value="#FFC61A" style="width: 45px; height: 38px; border-radius: 6px; cursor: pointer;" onchange="updateDividerColor()">
-              <input type="text" id="dividerColorHex" value="#FFC61A" style="flex:1;" onchange="document.getElementById('dividerColor').value = this.value; updateDividerColor()">
-            </div>
+            <label class="form-label">لون الفاصل وشريط الهوية</label>
+            <select id="dividerColor" onchange="updateSplitScreenUI()">
+              <option value="#FFC61A" selected>الأصفر الذهبي (هوية نادي جسور)</option>
+              <option value="#38bdf8">الأزرق الأكاديمي (جامعة الجزائر 1)</option>
+              <option value="#FFFFFF">الأبيض الناصع</option>
+            </select>
           </div>
         </div>
 
-        <!-- TAB 2: LOWER THIRDS CONTROLS -->
+        <!-- 2. LOWER-THIRD CONTROLS -->
         <div id="ltControls" style="display: none;">
-          <div class="form-group">
-            <label class="form-label">أعضاء لجنة مناقشة د. أحمد قبايلي</label>
-            <select id="ltPresetSelect" onchange="applyLTPreset(this.value)">
-              <option value="">-- اختر أستاذاً للتطبيق التلقائي --</option>
-              <option value="chafia">أ.د. شافية صديق (رئيسة اللجنة)</option>
-              <option value="akkak">أ.د. عبد الغني عكاك (المناقش الأول)</option>
-              <option value="chennouf">أ.د. ناجي شنوف (المناقش الثاني)</option>
-              <option value="chentouh">أ.د. ليليا شنتوح (المناقشة الثالثة)</option>
-              <option value="addar">أ.د. يوسف عدار (المشرف والمقرر)</option>
-              <option value="kabaili">الباحث أحمد قبايلي (المترشح)</option>
-            </select>
+          <div class="section-title">
+            <span>🏷️ بيانات شريط التعريف والأستاذ</span>
           </div>
 
           <div class="form-group">
-            <label class="form-label">الصفة / الرتبة في الجلسة (الشريط الذهبي الأعلى)</label>
-            <input type="text" id="ltRoleInput" value="رئيس لجنة المناقشة" oninput="updateLowerThird()">
+            <label class="form-label">نماذج سريعة لأعضاء لجنة المناقشة</label>
+            <div class="presets-row">
+              <span class="preset-pill" onclick="applyLTPreset('رئيس لجنة المناقشة', 'أ.د. شافية صديق', 'جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)')">أ.د. شافية صديق</span>
+              <span class="preset-pill" onclick="applyLTPreset('عضو مناقش', 'أ.د. عبد الغني عكاك', 'جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)')">أ.د. عبد الغني عكاك</span>
+              <span class="preset-pill" onclick="applyLTPreset('عضو مناقش', 'أ.د. ناجي شنوف', 'جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)')">أ.د. ناجي شنوف</span>
+              <span class="preset-pill" onclick="applyLTPreset('عضو مناقش', 'أ.د. ليليا شنتوح', 'جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)')">أ.د. ليليا شنتوح</span>
+              <span class="preset-pill" onclick="applyLTPreset('المشرف ومقرر الجلسة', 'أ.د. يوسف عدار', 'جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)')">أ.د. يوسف عدار</span>
+              <span class="preset-pill" onclick="applyLTPreset('الباحث صاحب الأطروحة', 'د. أحمد قبايلي', 'تخصص العقيدة ومقارنة الأديان — جامعة الجزائر 1')">د. أحمد قبايلي</span>
+              <span class="preset-pill" onclick="applyLTPreset('منسق نادي جسور العلمي', 'عبد الرحيم قاسي', 'كلية العلوم الإسلامية — جامعة الجزائر 1')">عبد الرحيم قاسي</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">الصفة / الرتبة (الشريط الذهبي الأعلى)</label>
+            <input type="text" id="ltRoleInput" value="رئيس لجنة المناقشة" oninput="updateLTUI()">
           </div>
 
           <div class="form-group">
             <label class="form-label">الاسم الكامل واللقب الأكاديمي</label>
-            <input type="text" id="ltNameInput" value="أ.د. شافية صديق" oninput="updateLowerThird()">
+            <input type="text" id="ltNameInput" value="أ.د. شافية صديق" oninput="updateLTUI()">
           </div>
 
           <div class="form-group">
             <label class="form-label">الجامعة / الكلية / التخصص</label>
-            <input type="text" id="ltAffilInput" value="جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)" oninput="updateLowerThird()">
+            <input type="text" id="ltAffilInput" value="جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)" oninput="updateLTUI()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">موضع ظهور الشريط على الشاشة</label>
+            <select id="ltPositionSelect" onchange="updateLTPosition()">
+              <option value="right" selected>أسفل اليمين (المعيار العربي للتلفزيون)</option>
+              <option value="center">أسفل الوسط (المركز)</option>
+              <option value="left">أسفل اليسار (المعيار اللاتيني)</option>
+            </select>
           </div>
         </div>
 
-        <hr style="border: none; border-top: 1px solid var(--border-color);">
-
-        <!-- Action Export Buttons -->
-        <div class="form-group">
-          <label class="form-label">التحكم في العرض والحركة</label>
-          <div class="btn-row">
-            <button class="btn btn-primary" onclick="playAnimation()">
-              <span>▶️ تشغيل الحركة (GSAP)</span>
-            </button>
-            <button class="btn btn-secondary" onclick="resetAnimation()">
-              <span>🔄 إعادة الضبط</span>
-            </button>
-          </div>
+        <!-- 3. ANIMATION CONTROLS (SHARED) -->
+        <div class="section-title">
+          <span>⏱️ التحكم في الحركة والزمن (GSAP)</span>
         </div>
 
         <div class="form-group">
-          <label class="form-label">خيارات التصدير للمونتاج المباشر</label>
-          <div class="btn-row">
-            <button class="btn btn-green" onclick="exportPNG()" title="أعلى جودة وتفريغ حقيقي 100% بدون خلفية لـ CapCut">
-              <span>📸 تصدير PNG (1080p شفاف)</span>
-            </button>
-            <button class="btn btn-secondary" onclick="exportWebM()" title="تصدير فيديو متحرك بحركة الدخول والخروج">
-              <span>🎥 تصدير WebM متحرك</span>
-            </button>
-          </div>
+          <label class="form-label">
+            <span>مدة البقاء على الشاشة: <strong id="holdDurationLabel" style="color:var(--gold);">4.0 ثانية</strong></span>
+          </label>
+          <input type="range" id="holdDurationRange" min="2" max="10" step="0.5" value="4" oninput="updateHoldDuration(this.value)" style="accent-color: var(--gold);">
+        </div>
 
-          <!-- WebM Background Choice -->
-          <div style="margin-top: 10px; background: rgba(0,0,0,0.35); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <span style="color: var(--text-muted); font-size: 12px;">خلفية فيديو الـ WebM:</span>
-              <div style="display: flex; gap: 10px;">
-                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                  <input type="radio" name="webmBg" value="chroma" checked onchange="setWebmBg(this.value)">
-                  <span style="color: #4ade80; font-weight: 700; font-size: 12px;">كروما خضراء 🟩</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                  <input type="radio" name="webmBg" value="transparent" onchange="setWebmBg(this.value)">
-                  <span style="color: #9ca3af; font-size: 12px;">تفريغ متصفح</span>
-                </label>
-              </div>
-            </div>
-            <div style="font-size: 11px; color: #cbd5e1; line-height: 1.5; border-right: 3px solid var(--gold); padding-right: 8px;">
-              💡 <strong>نصيحة لكاب كات (CapCut):</strong>
-              <br>• <strong>الأفضل:</strong> استخدم <strong>PNG شفاف</strong> مع حركة Slide Up من تبويب Animation بكاب كات.
-              <br>• <strong>لفيديو WebM:</strong> استخدم خيار <strong>كروما خضراء</strong> ثم فعّل <strong>Chroma Key</strong> في كاب كات لتفريغ الخلفية بضغطة زر.
-            </div>
-          </div>
-
-          <button class="btn btn-secondary" style="margin-top: 8px;" onclick="showCodeModal()">
-            <span>📋 نسخ كود HyperFrames / CapCut</span>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="playFullCycle()">
+            <span>▶️ تشغيل الدورة كاملة</span>
+          </button>
+          <button class="btn btn-secondary" onclick="playInOnly()">
+            <span>📥 دخول فقط</span>
+          </button>
+          <button class="btn btn-secondary" onclick="resetAnimation()">
+            <span>🔄 ضبط</span>
           </button>
         </div>
+
+        <!-- 4. MASTER EXPORT SUITE -->
+        <div class="section-title" style="margin-top: 6px;">
+          <span>🚀 خيارات التصدير المتوافقة مع CapCut و NLEs</span>
+        </div>
+
+        <!-- Export 1: Crystal-Clear Transparent PNG -->
+        <button class="btn btn-green" onclick="exportPNG()" style="padding: 12px; font-size: 13px;" title="أعلى جودة وتفريغ حقيقي 100% بدون أي خلفية سوداء">
+          <span>📸 1. تصدير PNG شفاف 1080p (الموصى به لـ CapCut)</span>
+        </button>
+
+        <!-- CapCut Easy Tip Card -->
+        <div style="background: rgba(16, 185, 129, 0.08); border-right: 3px solid var(--success-green); padding: 8px 12px; border-radius: 6px; font-size: 11px; line-height: 1.6; color: #e2e8f0;">
+          ✨ <strong>لماذا PNG هو الأفضل في كاب كات؟</strong>
+          <br>لأنه يعطيك تفريغاً حقيقياً 100% بدون خلفية سوداء، ونقاءً تاماً للخطوط. لإضافة الحركة بكاب كات بنقرتين:
+          <br>اسحب الـ PNG فوق الفيديو ⬅️ Animation ⬅️ <strong>Slide Up</strong> للدخول و <strong>Slide Down</strong> للخروج.
+        </div>
+
+        <!-- Export 2: Chroma Green Video -->
+        <button class="btn btn-chroma" onclick="exportChromaVideo()" style="padding: 12px; font-size: 13px;" title="فيديو كروما خضراء بنقاوة كاملة لاستخدام Chroma Key في كاب كات">
+          <span>🟩 2. تصدير فيديو كروما خضراء (Chroma Key WebM)</span>
+        </button>
+
+        <!-- Chroma Tip Card -->
+        <div style="background: rgba(34, 197, 94, 0.08); border-right: 3px solid #22c55e; padding: 8px 12px; border-radius: 6px; font-size: 11px; line-height: 1.5; color: #cbd5e1;">
+          💡 <strong>استخدام الكروما في CapCut:</strong>
+          <br>اسحب الفيديو ⬅️ قائمة Video ⬅️ Cutout ⬅️ <strong>Chroma Key</strong> ⬅️ اضغط بالقطارة على اللون الأخضر، فيختفي الأخضر فوراً ويبقى الشريط متحركاً!
+        </div>
+
+        <!-- Export 3: PNG Image Sequence ZIP -->
+        <button class="btn btn-secondary" onclick="exportImageSequenceZIP()" style="padding: 10px; font-size: 12px;" title="حزمة إطارات PNG متسلسلة للبرامج الاحترافية Premiere و DaVinci">
+          <span>📁 3. تصدير حزمة إطارات PNG (ZIP Sequence)</span>
+        </button>
+
+        <!-- Export 4: Python & PyCapCut Code -->
+        <button class="btn btn-secondary" onclick="showCodeModal()" style="padding: 10px; font-size: 12px;">
+          <span>📋 4. كود بايثون وحقن مسودة CapCut البرمجية</span>
+        </button>
 
       </div>
     </div>
 
-    <!-- Right Preview Stage -->
+    <!-- Preview Stage -->
     <div class="preview-stage">
 
       <!-- Stage Overlay Toolbar -->
       <div class="stage-toolbar">
-        <button class="tool-btn active" id="btnAlphaBg" onclick="toggleCheckerboard(true)">
-          <span>🏁 خلفية شفافة</span>
+        <button class="tool-btn active" id="btnAlphaBg" onclick="setStageBg('checker')">
+          <span>🏁 تفريغ شطرنجي</span>
         </button>
-        <button class="tool-btn" id="btnVideoBg" onclick="toggleCheckerboard(false)">
-          <span>🎥 محاكاة فيديو الطالب</span>
+        <button class="tool-btn" id="btnChromaBg" onclick="setStageBg('chroma')">
+          <span>🟩 كروما خضراء</span>
+        </button>
+        <button class="tool-btn" id="btnVideoBg" onclick="setStageBg('video')">
+          <span>🎥 محاكاة القاعة</span>
+        </button>
+        <button class="tool-btn" id="btnSafeAreas" onclick="toggleSafeAreas()">
+          <span>📐 حدود الأمان (Safe Area)</span>
         </button>
       </div>
 
       <!-- Scaled 16:9 Viewport -->
-      <div class="canvas-viewport" id="viewport">
+      <div class="canvas-viewport bg-checker" id="viewport">
+
+        <!-- Mock background image for camera preview -->
+        <img id="mockVideoEl" class="mock-video-bg" src="https://images.unsplash.com/photo-1576495199011-eb94736d05d6?auto=format&fit=crop&w=1920&q=80" alt="Mock Stage">
+
+        <!-- Broadcast Safe Area Overlay -->
+        <div class="safe-area-overlay" id="safeAreaOverlay">
+          <div class="action-safe"></div>
+          <div class="title-safe"></div>
+        </div>
+
+        <!-- Virtual 1920x1080 Stage -->
         <div id="renderRoot">
 
           <!-- 1. SPLIT SCREEN ROOT COMPONENT -->
           <div id="splitScreenContainer">
-            <!-- Left Half (Transparent Camera Zone) -->
-            <div class="ss-left-student" id="leftStudentZone">
-              <div class="ss-placeholder-box" id="studentPlaceholder">
-                🎥 منطقة فيديو المتحدث (شفافة 100%)
+            <div class="ss-left-student">
+              <div class="ss-placeholder-box">
+                🎥 مساحة فيديو المتحدث / الباحث (X: 0 إلى 960)
               </div>
             </div>
-
-            <!-- Golden Vertical Divider -->
             <div class="ss-divider" id="ssDivider"></div>
-
-            <!-- Right Half (Document Stage) -->
             <div class="ss-right-stage" id="ssRightStage">
               <div class="ss-header">
-                <div class="ss-header-text" id="ssHeaderDisplay">
-                  أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | ملخص الأطروحة (3/4): مشكلة الشر في الفكر الكلامي
-                </div>
+                <div class="ss-header-text" id="ssHeaderDisplay">أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | ملخص الأطروحة</div>
               </div>
-
-              <div class="ss-doc-wrapper">
-                <div class="ss-doc-card" id="ssDocCard">
-                  <img id="ssDocImg" src="" alt="صفحة الأطروحة" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'800\'><rect fill=\'%23ffffff\' width=\'100%\' height=\'100%\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'28\' fill=\'%23888888\' text-anchor=\'middle\'>اسحب صورة الصفحة هنا</text></svg>'">
-                </div>
+              <div class="ss-doc-card" id="ssDocCard">
+                <img id="ssDocImg" src="" alt="Thesis Document Page">
               </div>
-
               <div class="ss-footer">
-                <div class="ss-footer-text" id="ssFooterDisplay">
-                  عرض وتقرير ملخص الأطروحة — الباحث أحمد قبايلي
-                </div>
+                <div class="ss-footer-text" id="ssFooterDisplay">عرض وتقرير ملخص الأطروحة — الباحث أحمد قبايلي</div>
               </div>
             </div>
           </div>
@@ -833,50 +911,36 @@
     </div>
   </div>
 
-  <!-- Hidden Offscreen Canvas for Pixel-Perfect 1920x1080 Export -->
-  <canvas id="exportCanvas" width="1920" height="1080" style="display: none;"></canvas>
+  <!-- Offscreen 1920x1080 Canvas -->
+  <canvas id="exportCanvas" width="1920" height="1080" style="position:fixed; left:-9999px; top:-9999px;"></canvas>
 
-  <!-- Modal Code Snippet -->
-  <div class="modal-overlay" id="codeModal">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 style="font-size: 16px;">كود الإدراج في HyperFrames و CapCut</h3>
-        <button style="background:none; border:none; color:#fff; font-size: 20px; cursor: pointer;" onclick="document.getElementById('codeModal').style.display='none'">✕</button>
-      </div>
-      <div class="modal-code" id="codeText"></div>
-      <button class="btn btn-primary" onclick="copyCode()">📋 نسخ الكود للحافظة</button>
-    </div>
-  </div>
-
-
-  <!-- Modal Export Progress (Joussour Studio) -->
+  <!-- Progress Modal -->
   <div class="modal-overlay" id="exportProgressModal" style="display: none;">
-    <div class="modal-box" style="width: 540px; text-align: center; border: 2px solid var(--gold); box-shadow: 0 0 35px rgba(255,198,26,0.25);">
-      <div class="modal-header" style="justify-content: center; position: relative; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-        <h3 id="exportModalTitle" style="font-size: 18px; color: var(--gold); display: flex; align-items: center; justify-content: center; gap: 8px;">
-          <span>🎬</span> جاري رندرة وتصدير الفيديو الشفاف بدقة 1080p
+    <div class="modal-box" style="width: 540px; text-align: center; border: 2px solid var(--gold); box-shadow: 0 0 35px rgba(255,198,26,0.3);">
+      <div style="display: flex; justify-content: center; position: relative; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h3 id="exportModalTitle" style="font-size: 18px; color: var(--gold); display: flex; align-items: center; gap: 8px;">
+          <span>🎬</span> جاري رندرة وتصدير المقطع
         </h3>
         <button id="exportCloseBtn" style="position: absolute; left: 0; top: 0; background:none; border:none; color:var(--text-muted); font-size: 20px; cursor: pointer; display: none;" onclick="closeExportModal()">✕</button>
       </div>
 
-      <!-- Working / Recording State -->
+      <!-- Working State -->
       <div id="exportWorkingSection" style="padding: 10px 0;">
         <p style="font-size: 14px; color: #d1d5db; margin-bottom: 14px;" id="exportSubtitle">
-          يتم الآن رندرة إطارات الحركة وحفظ قناة الشفافية (Alpha Channel) بمعدل 30 إطار/ثانية...
+          يتم الآن رندرة إطارات الحركة بدقة 1080p بمعدل 30 إطار/ثانية...
         </p>
 
-        <!-- Progress Bar Container -->
-        <div style="width: 100%; height: 20px; background: #090a0e; border-radius: 10px; border: 1px solid var(--border-color); overflow: hidden; position: relative; margin: 16px 0; box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);">
+        <!-- Progress Bar -->
+        <div style="width: 100%; height: 18px; background: #090a0e; border-radius: 9px; border: 1px solid var(--border-color); overflow: hidden; position: relative; margin: 16px 0; box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);">
           <div id="exportProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #d97706, #FFC61A, #ffe066); transition: width 0.1s linear; box-shadow: 0 0 15px rgba(255,198,26,0.7);"></div>
         </div>
 
-        <!-- Progress Meta -->
-        <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: #f3f4f6; margin-top: 6px; padding: 0 4px;">
+        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #f3f4f6; margin-top: 4px; padding: 0 4px;">
           <span id="exportProgressTime">0.0 ث / 5.2 ث</span>
-          <span id="exportProgressPct" style="color: var(--gold); font-size: 16px;">0%</span>
+          <span id="exportProgressPct" style="color: var(--gold); font-size: 15px;">0%</span>
         </div>
         <div style="font-size: 12px; color: #9ca3af; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 6px; display: inline-block;" id="exportStatusDetail">
-          جاري تجهيز مسار التسجيل...
+          جاري تجهيز محرك الرندرة...
         </div>
 
         <div style="margin-top: 18px;">
@@ -886,16 +950,16 @@
         </div>
       </div>
 
-      <!-- Done / Completed State -->
-      <div id="exportDoneSection" style="display: none; padding: 16px 0;">
-        <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
-        <h4 style="font-size: 18px; color: var(--success-green); margin-bottom: 8px;">تم تجهيز الفيديو بنجاح!</h4>
-        <p style="font-size: 13px; color: #d1d5db; margin-bottom: 20px;">
-          بدأ التنزيل التلقائي لملف WebM الشفاف. إذا منع المتصفح التنزيل التلقائي، يمكنك الضغط على الزر أدناه:
+      <!-- Done State -->
+      <div id="exportDoneSection" style="display: none; padding: 14px 0;">
+        <div style="font-size: 46px; margin-bottom: 10px;">✅</div>
+        <h4 style="font-size: 18px; color: var(--success-green); margin-bottom: 8px;">تم اكتمال التصدير بنجاح!</h4>
+        <p style="font-size: 13px; color: #d1d5db; margin-bottom: 18px;" id="exportDoneMessage">
+          بدأ التنزيل التلقائي لملفك. إذا منع المتصفح التنزيل التلقائي، يمكنك الضغط على الزر أدناه:
         </p>
         <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-          <a id="exportManualDownloadLink" class="btn btn-primary" href="#" download="joussour_video.webm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; padding: 10px 20px;">
-            <span>📥</span> تحميل ملف الفيديو الآن (.webm)
+          <a id="exportManualDownloadLink" class="btn btn-primary" href="#" download style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; padding: 10px 20px;">
+            <span>📥</span> تحميل الملف الآن مباشرة
           </a>
           <button class="btn btn-secondary" onclick="closeExportModal()" style="padding: 10px 18px;">
             إغلاق
@@ -905,10 +969,27 @@
     </div>
   </div>
 
+  <!-- Code Modal -->
+  <div class="modal-overlay" id="codeModal">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 16px; color: var(--gold);">كود بايثون وحقن مسودة CapCut البرمجية</h3>
+        <button style="background:none; border:none; color:#fff; font-size: 20px; cursor: pointer;" onclick="document.getElementById('codeModal').style.display='none'">✕</button>
+      </div>
+      <div class="modal-code" id="codeText"></div>
+      <button class="btn btn-primary" onclick="copyCode(event)">📋 نسخ الكود للحافظة</button>
+    </div>
+  </div>
+
   <script>
     let currentMode = 'split'; // 'split' or 'lt'
     let currentTimeline = null;
-    let isCheckerboard = true;
+    let holdDuration = 4.0;
+    let isExporting = false;
+    let exportCancelled = false;
+    let exportAnimInterval = null;
+    let currentMediaRecorder = null;
+    let showSafeAreas = false;
 
     // Responsive Scale Viewport to match 1920x1080
     function resizeViewport() {
@@ -918,9 +999,9 @@
       root.style.transform = `scale(${scale})`;
     }
     window.addEventListener('resize', resizeViewport);
+
     document.addEventListener('DOMContentLoaded', () => {
       resizeViewport();
-      // Load default sample page
       loadThesisPage('17', 'الفصل الأول: مشكلة الشر وتأطيرها إلحادياً');
       initAnimations();
       if (window.location.hash === '#lt') {
@@ -928,7 +1009,7 @@
       }
     });
 
-    // Tab Switching
+    // Tab Switch
     function switchTab(mode) {
       currentMode = mode;
       document.getElementById('tabSplit').classList.toggle('active', mode === 'split');
@@ -940,122 +1021,150 @@
       resetAnimation();
     }
 
-    // Toggle Checkerboard vs Simulated Video
-    function toggleCheckerboard(alpha) {
-      isCheckerboard = alpha;
-      document.getElementById('btnAlphaBg').classList.toggle('active', alpha);
-      document.getElementById('btnVideoBg').classList.toggle('active', !alpha);
-      const vp = document.getElementById('viewport');
-      if (alpha) {
-        vp.style.background = '';
-        document.getElementById('leftStudentZone').style.background = 'transparent';
-        document.getElementById('studentPlaceholder').style.display = 'block';
-      } else {
-        vp.style.background = '#111318';
-        document.getElementById('leftStudentZone').style.background = 'linear-gradient(135deg, #1c1d24 0%, #0d0e12 100%)';
-        document.getElementById('studentPlaceholder').style.display = 'none';
-      }
-    }
-
-    // Update Split-Screen text
-    function updateSplitScreen() {
-      const hText = document.getElementById('ssHeaderInput').value;
-      const fText = document.getElementById('ssFooterInput').value;
-      document.getElementById('ssHeaderDisplay').innerText = hText;
-      document.getElementById('ssFooterDisplay').innerText = fText;
-    }
-
-    function updateDividerColor() {
+    // UI Updaters
+    function updateSplitScreenUI() {
+      document.getElementById('ssHeaderDisplay').innerText = document.getElementById('ssHeaderInput').value;
+      document.getElementById('ssFooterDisplay').innerText = document.getElementById('ssFooterInput').value;
       const col = document.getElementById('dividerColor').value;
-      document.getElementById('dividerColorHex').value = col;
       document.getElementById('ssDivider').style.background = col;
-      document.querySelector('.ss-header').style.borderBottomColor = col;
-      document.getElementById('ssFooterDisplay').style.color = col;
+      document.getElementById('ssDivider').style.boxShadow = `0 0 20px ${col}`;
     }
 
-    // File Drop & Load
-    function handleFileSelect(evt) {
-      const file = evt.target.files[0];
-      if (file) {
-        document.getElementById('dropFileName').innerText = file.name;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('ssDocImg').src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    // Drag & Drop handlers
-    const dropZone = document.getElementById('dropZone');
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        document.getElementById('fileInput').files = e.dataTransfer.files;
-        handleFileSelect({ target: { files: e.dataTransfer.files } });
-      }
-    });
-
-    // Quick Thesis Presets
-    function loadThesisPage(pageNum, titleDesc) {
-      const path = `file:///C:/Users/rhmka/Desktop/مناقشة%20الإلحاد/صفحات_المذكرة_المستخرجة/raw_page_${pageNum.padStart(3, '0')}.png`;
-      document.getElementById('ssDocImg').src = path;
-      document.getElementById('dropFileName').innerText = `أصل صفحة الأطروحة: ص ${pageNum} (${titleDesc})`;
-      if (pageNum === '17') {
-        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | الفصل الأول: مشكلة الشر وتأطيرها إلحادياً";
-      } else if (pageNum === '25') {
-        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | مرتكزات الإلحاد المعاصر ودحضها (ص 25)";
-      } else if (pageNum === '09') {
-        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | أهداف البحث وإشكاليته (ص 9)";
-      } else if (pageNum === '13') {
-        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | منهج البحث وأدواته التحليلية (ص 13)";
-      } else if (pageNum === '15') {
-        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | خطة البحث وهيكلة الفصول (ص 15)";
-      } else if (pageNum === '290') {
-        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | نتائج البحث وخاتمة الأطروحة والتوصيات";
-      } else if (pageNum === '01') {
-        document.getElementById('ssHeaderInput').value = "أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | واجهة وغلاف الأطروحة الرسمي";
-      }
-      updateSplitScreen();
-    }
-
-    // Lower-Thirds Logic
-    function updateLowerThird() {
+    function updateLTUI() {
       document.getElementById('ltRoleDisplay').innerText = document.getElementById('ltRoleInput').value;
       document.getElementById('ltNameDisplay').innerText = document.getElementById('ltNameInput').value;
       document.getElementById('ltAffilDisplay').innerText = document.getElementById('ltAffilInput').value;
     }
 
-    function applyLTPreset(key) {
-      const data = {
-        chafia: { role: "رئيس لجنة المناقشة", name: "أ.د. شافية صديق", affil: "جامعة الجزائر 1 — كلية العلوم الإسلامية (خروبة)" },
-        akkak: { role: "عضو لجنة المناقشة (مناقش أول)", name: "أ.د. عبد الغني عكاك", affil: "جامعة الجزائر 1 — كلية العلوم الإسلامية" },
-        chennouf: { role: "عضو لجنة المناقشة (مناقش ثانٍ)", name: "أ.د. ناجي شنوف", affil: "جامعة المدية — كلية العلوم الإنسانية والاجتماعية" },
-        chentouh: { role: "عضو لجنة المناقشة (مناقشة ثالثة)", name: "أ.د. ليليا شنتوح", affil: "جامعة الجزائر 1 — كلية العلوم الإسلامية" },
-        addar: { role: "المشرف والمقرر", name: "أ.د. يوسف عدار", affil: "جامعة الجزائر 1 — كلية العلوم الإسلامية" },
-        kabaili: { role: "الباحث المترشح", name: "الباحث أحمد قبايلي", affil: "أطروحة دكتوراه الطور الثالث (LMD) — العقيدة ومقارنة الأديان" }
-      };
-      if (data[key]) {
-        document.getElementById('ltRoleInput').value = data[key].role;
-        document.getElementById('ltNameInput').value = data[key].name;
-        document.getElementById('ltAffilInput').value = data[key].affil;
-        updateLowerThird();
-        playAnimation();
+    function applyLTPreset(role, name, affil) {
+      document.getElementById('ltRoleInput').value = role;
+      document.getElementById('ltNameInput').value = name;
+      document.getElementById('ltAffilInput').value = affil;
+      updateLTUI();
+      playInOnly();
+    }
+
+    function updateLTPosition() {
+      const pos = document.getElementById('ltPositionSelect').value;
+      const lt = document.getElementById('ltWrapper');
+      lt.classList.remove('pos-center', 'pos-left');
+      if (pos === 'center') lt.classList.add('pos-center');
+      if (pos === 'left') lt.classList.add('pos-left');
+    }
+
+    function updateHoldDuration(val) {
+      holdDuration = parseFloat(val);
+      document.getElementById('holdDurationLabel').innerText = holdDuration.toFixed(1) + ' ثانية';
+    }
+
+    function setStageBg(type) {
+      const vp = document.getElementById('viewport');
+      const mock = document.getElementById('mockVideoEl');
+      vp.classList.remove('bg-checker', 'bg-chroma-green', 'bg-pure-black');
+      mock.style.display = 'none';
+
+      if (type === 'checker') vp.classList.add('bg-checker');
+      if (type === 'chroma') vp.classList.add('bg-chroma-green');
+      if (type === 'black') vp.classList.add('bg-pure-black');
+      if (type === 'video') {
+        vp.classList.add('bg-pure-black');
+        mock.style.display = 'block';
       }
+
+      document.getElementById('btnAlphaBg').classList.toggle('active', type === 'checker');
+      document.getElementById('btnChromaBg').classList.toggle('active', type === 'chroma');
+      document.getElementById('btnVideoBg').classList.toggle('active', type === 'video');
+    }
+
+    function toggleSafeAreas() {
+      showSafeAreas = !showSafeAreas;
+      document.getElementById('safeAreaOverlay').style.display = showSafeAreas ? 'block' : 'none';
+      document.getElementById('btnSafeAreas').classList.toggle('active', showSafeAreas);
+    }
+
+    // Presets for Thesis Pages
+    function loadThesisPage(pageId, title) {
+      document.getElementById('ssHeaderInput').value = `أطروحة الدكتوراه: مرتكزات الخطاب الإلحادي المعاصر | ${title}`;
+      updateSplitScreenUI();
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 840;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, 640, 840);
+
+      ctx.fillStyle = "#111111";
+      ctx.font = "bold 22px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+      ctx.direction = 'rtl';
+      ctx.textAlign = "center";
+      ctx.fillText(`صفحة الأطروحة رقم ${pageId}`, 320, 60);
+
+      ctx.fillStyle = "#475569";
+      ctx.font = "600 15px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+      ctx.fillText(title, 320, 95);
+
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(40, 115);
+      ctx.lineTo(600, 115);
+      ctx.stroke();
+
+      ctx.fillStyle = "#334155";
+      ctx.font = "500 14px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+      ctx.textAlign = "right";
+
+      const sampleLines = [
+        "«... وتأتي معالجة هذه المسألة في سياق تحرير محل النزاع الكلامي والإبستمولوجي،",
+        "حيث تقرر أن الاستدلال بالنظام والضبط الدقيق ينهض برهاناً متماسكاً يدفع إيرادات الاتفاق والصدفة.",
+        "وقد أبان الفحص المنهجي أن الاتكاء على فرضيات اللانهاية العبثية لا يرفع الضرورة العقلية",
+        "المقتضية لتعين المبدأ الأول وامتناع التسلسل والترجيح بلا مرجح...",
+        "",
+        "الفرع الأول: صياغة المسألة وتقرير مقدماتها الكلامية الصرفة.",
+        "الفرع الثاني: مناقشة الاعتراضات المعاصرة وتدقيق نسبتها للمذهب المختار.",
+        "",
+        "وهذا المسلك يوافق ما قرره النظار في دفع شبهات المبطلين وصيانة أصول الاستدلال.»"
+      ];
+
+      let y = 160;
+      for (const line of sampleLines) {
+        ctx.fillText(line, 590, y);
+        y += 34;
+      }
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 13px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`— ${pageId} —`, 320, 805);
+
+      document.getElementById('ssDocImg').src = canvas.toDataURL('image/png');
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('ssDocImg').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
     // GSAP ANIMATIONS
     function initAnimations() {
-      // Setup initial states
       gsap.set("#ssRightStage", { x: 0, opacity: 1 });
       gsap.set("#ssDocCard", { scale: 1, opacity: 1 });
+      gsap.set("#ssDivider", { scaleY: 1, opacity: 1 });
       gsap.set("#ltWrapper", { y: 0, opacity: 1 });
     }
 
-    function playAnimation() {
+    function resetAnimation() {
+      if (currentTimeline) currentTimeline.kill();
+      initAnimations();
+    }
+
+    function playFullCycle() {
       if (currentTimeline) currentTimeline.kill();
       currentTimeline = gsap.timeline();
 
@@ -1065,362 +1174,54 @@
           .set("#ssDivider", { scaleY: 0, opacity: 0 })
           .set("#ssDocCard", { scale: 0.9, opacity: 0 })
           .to("#ssDivider", { scaleY: 1, opacity: 1, duration: 0.4, ease: "power2.out" })
-          .to("#ssRightStage", { x: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, "-=0.2")
+          .to("#ssRightStage", { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, "-=0.2")
           .to("#ssDocCard", { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.2)" }, "-=0.3")
-          .to({}, { duration: 3.5 }) // Hold on screen
+          .to({}, { duration: holdDuration })
           .to("#ssDocCard", { scale: 0.95, opacity: 0, duration: 0.4, ease: "power2.in" })
-          .to("#ssRightStage", { x: 960, opacity: 0, duration: 0.6, ease: "power3.in" }, "-=0.2")
+          .to("#ssRightStage", { x: 960, opacity: 0, duration: 0.5, ease: "power3.in" }, "-=0.2")
           .to("#ssDivider", { opacity: 0, duration: 0.2 }, "-=0.1");
       } else {
         currentTimeline
           .set("#ltWrapper", { y: 60, opacity: 0 })
           .set(".lt-gold-bar", { scaleY: 0.2 })
           .to("#ltWrapper", { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" })
-          .to(".lt-gold-bar", { scaleY: 1.2, duration: 0.3, yoyo: true, repeat: 1 }, "-=0.2")
-          .to({}, { duration: 4.0 }) // Hold on screen
-          .to("#ltWrapper", { y: 40, opacity: 0, duration: 0.5, ease: "power3.in" });
+          .to(".lt-gold-bar", { scaleY: 1.15, duration: 0.3, yoyo: true, repeat: 1 }, "-=0.2")
+          .to({}, { duration: holdDuration })
+          .to("#ltWrapper", { y: 50, opacity: 0, duration: 0.5, ease: "power3.in" });
       }
     }
 
-    function resetAnimation() {
+    function playInOnly() {
       if (currentTimeline) currentTimeline.kill();
-      gsap.set("#ssRightStage", { x: 0, opacity: 1 });
-      gsap.set("#ssDivider", { scaleY: 1, opacity: 1 });
-      gsap.set("#ssDocCard", { scale: 1, opacity: 1 });
-      gsap.set("#ltWrapper", { y: 0, opacity: 1 });
-    }
-
-    // EXPORT HIGH-RES PNG (1920x1080)
-    function exportPNG() {
-      const canvas = document.getElementById('exportCanvas');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, 1920, 1080);
-      ctx.direction = 'rtl';
-
-      // If recording WebM with Chroma Green background
-      if (isExporting && webmBgChoice === 'chroma') {
-        ctx.fillStyle = "#00FF00";
-        ctx.fillRect(0, 0, 1920, 1080);
-      }
+      currentTimeline = gsap.timeline();
 
       if (currentMode === 'split') {
-        // Draw Right Stage background
-        ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
-        ctx.fillRect(960, 0, 960, 1080);
-
-        // Draw Golden Divider
-        const divCol = document.getElementById('dividerColor').value;
-        ctx.fillStyle = divCol;
-        ctx.fillRect(960, 0, 4, 1080);
-
-        // Header Bar
-        ctx.fillStyle = "#1E222C";
-        roundRect(ctx, 980, 24, 900, 68, 8, true);
-        ctx.fillStyle = divCol;
-        ctx.fillRect(980, 89, 900, 3);
-
-        // Header Text
-        ctx.fillStyle = "#FFFFFF";
-        ctx.font = "bold 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(document.getElementById('ssHeaderInput').value, 1430, 64);
-
-        // Draw Document Image
-        const img = document.getElementById('ssDocImg');
-        if (img && img.naturalWidth) {
-          const maxW = 640;
-          const maxH = 840;
-          const ratio = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
-          const dw = img.naturalWidth * ratio;
-          const dh = img.naturalHeight * ratio;
-          const dx = 960 + (960 - dw) / 2;
-          const dy = 110 + (860 - dh) / 2;
-
-          // Card Shadow & White Bg
-          ctx.save();
-          ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
-          ctx.shadowBlur = 40;
-          ctx.shadowOffsetY = 15;
-          ctx.fillStyle = "#FFFFFF";
-          roundRect(ctx, dx, dy, dw, dh, 6, true);
-          ctx.restore();
-
-          ctx.drawImage(img, dx, dy, dw, dh);
-        }
-
-        // Footer Text
-        ctx.fillStyle = divCol;
-        ctx.font = "800 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(document.getElementById('ssFooterInput').value, 1430, 1045);
-
+        currentTimeline
+          .set("#ssRightStage", { x: 960, opacity: 0 })
+          .set("#ssDivider", { scaleY: 0, opacity: 0 })
+          .set("#ssDocCard", { scale: 0.9, opacity: 0 })
+          .to("#ssDivider", { scaleY: 1, opacity: 1, duration: 0.4, ease: "power2.out" })
+          .to("#ssRightStage", { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, "-=0.2")
+          .to("#ssDocCard", { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.2)" }, "-=0.3");
       } else {
-        // Draw Lower Third
-        const role = document.getElementById('ltRoleInput').value;
-        const name = document.getElementById('ltNameInput').value;
-        const affil = document.getElementById('ltAffilInput').value;
-        const divCol = "#FFC61A";
-
-        // Measure text for adaptive box
-        ctx.font = "800 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
-        const nameW = ctx.measureText(name).width;
-        ctx.font = "600 18px 'IBM Plex Sans Arabic', Cairo, sans-serif";
-        const affilW = ctx.measureText(affil).width;
-        const boxW = Math.max(nameW, affilW) + 120;
-
-        const bx = 100;
-        const by = 1080 - 85 - 110;
-
-        // Role Badge
-        ctx.fillStyle = divCol;
-        roundRect(ctx, bx, by - 36, 220, 38, 8, true);
-        ctx.fillStyle = "#111111";
-        ctx.font = "900 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
-        ctx.textAlign = "right";
-        ctx.fillText(role, bx + 220 - 24, by - 10);
-
-        // Main Card
-        ctx.save();
-        ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
-        ctx.shadowBlur = 35;
-        ctx.shadowOffsetY = 14;
-        ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
-        roundRect(ctx, bx, by, boxW, 110, 14, true);
-        ctx.strokeStyle = divCol;
-        ctx.lineWidth = 2;
-        roundRect(ctx, bx, by, boxW, 110, 14, false);
-        ctx.restore();
-
-        // Gold Indicator Mark
-        ctx.fillStyle = divCol;
-        roundRect(ctx, bx + boxW - 24, by + 24, 8, 62, 4, true);
-
-        // Name & Affiliation
-        ctx.fillStyle = "#FFFFFF";
-        ctx.font = "800 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
-        ctx.textAlign = "right";
-        ctx.fillText(name, bx + boxW - 46, by + 52);
-
-        ctx.fillStyle = "#9ca3af";
-        ctx.font = "600 18px 'IBM Plex Sans Arabic', Cairo, sans-serif";
-        ctx.fillText(affil, bx + boxW - 46, by + 88);
+        currentTimeline
+          .set("#ltWrapper", { y: 60, opacity: 0 })
+          .set(".lt-gold-bar", { scaleY: 0.2 })
+          .to("#ltWrapper", { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" })
+          .to(".lt-gold-bar", { scaleY: 1.15, duration: 0.3, yoyo: true, repeat: 1 }, "-=0.2");
       }
-
-      // Download PNG
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = currentMode === 'split' ? 'joussour_split_screen_1080p.png' : 'joussour_lower_third_1080p.png';
-        a.click();
-        URL.revokeObjectURL(url);
-      }, 'image/png');
     }
 
-    // Helper for Rounded Rectangles on Canvas
-    function roundRect(ctx, x, y, width, height, radius, fill) {
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.lineTo(x + width - radius, y);
-      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-      ctx.lineTo(x + width, y + height - radius);
-      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-      ctx.lineTo(x + radius, y + height);
-      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-      ctx.lineTo(x, y + radius);
-      ctx.quadraticCurveTo(x, y, x + radius, y);
-      ctx.closePath();
-      if (fill) ctx.fill(); else ctx.stroke();
-    }
-
-    // EXPORT TRANSPARENT WEBM (ALPHA CHANNEL) WITH PROGRESS & RESILIENCE
-    let webmBgChoice = 'chroma'; // 'chroma' or 'transparent'
-    function setWebmBg(val) {
-      webmBgChoice = val;
-    }
-    let isExporting = false;
-    let exportCancelled = false;
-    let exportAnimInterval = null;
-    let currentMediaRecorder = null;
-
-    function cancelExport() {
-      exportCancelled = true;
-      if (exportAnimInterval) clearInterval(exportAnimInterval);
-      if (currentMediaRecorder && currentMediaRecorder.state !== 'inactive') {
-        try { currentMediaRecorder.stop(); } catch(e) {}
-      }
-      resetAnimation();
-      closeExportModal();
-    }
-
-    function closeExportModal() {
-      document.getElementById('exportProgressModal').style.display = 'none';
-      isExporting = false;
-    }
-
-    async function exportWebM() {
-      if (isExporting) return;
-      isExporting = true;
-      exportCancelled = false;
-
-      // Ensure fonts are completely ready before recording
-      if (document.fonts) {
-        try { await document.fonts.ready; } catch(e) {}
-      }
-
-      const modal = document.getElementById('exportProgressModal');
-      const workingSec = document.getElementById('exportWorkingSection');
-      const doneSec = document.getElementById('exportDoneSection');
-      const progressBar = document.getElementById('exportProgressBar');
-      const progressPct = document.getElementById('exportProgressPct');
-      const progressTime = document.getElementById('exportProgressTime');
-      const statusDetail = document.getElementById('exportStatusDetail');
-      const closeBtn = document.getElementById('exportCloseBtn');
-
-      modal.style.display = 'flex';
-      workingSec.style.display = 'block';
-      doneSec.style.display = 'none';
-      closeBtn.style.display = 'none';
-      progressBar.style.width = '0%';
-      progressPct.innerText = '0%';
-      progressTime.innerText = '0.0 ث';
-      statusDetail.innerText = 'جاري إعداد محرك التسجيل الشفاف (Alpha Channel)...';
-
+    // DRAW ENGINE (PIXEL-PERFECT 1920x1080)
+    function drawActiveFrameToCanvas(isChroma = false) {
       const canvas = document.getElementById('exportCanvas');
       canvas.width = 1920;
       canvas.height = 1080;
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, 1920, 1080);
-
-      // VP9 codec preserves alpha channel in Chrome
-      let mimeType = 'video/webm;codecs=vp9';
-      if (typeof MediaRecorder === 'undefined') {
-        alert('المتصفح لا يدعم تقنية MediaRecorder لتسجيل الفيديو.');
-        closeExportModal();
-        return;
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
-      }
-
-      const stream = canvas.captureStream(30);
-      let recorder;
-      try {
-        recorder = new MediaRecorder(stream, { mimeType: mimeType, videoBitsPerSecond: 12000000 });
-      } catch (err) {
-        recorder = new MediaRecorder(stream);
-      }
-      currentMediaRecorder = recorder;
-
-      const chunks = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) chunks.push(e.data);
-      };
-
-      recorder.onstop = () => {
-        if (exportCancelled) return;
-
-        statusDetail.innerText = 'جاري تجميع وحفظ ملف الفيديو الشفاف...';
-        progressBar.style.width = '100%';
-        progressPct.innerText = '100%';
-
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const fileName = currentMode === 'split' 
-          ? 'joussour_split_screen_transparent.webm' 
-          : 'joussour_lower_third_transparent.webm';
-        const blobUrl = URL.createObjectURL(blob);
-
-        // Auto trigger download
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          if (document.body.contains(a)) document.body.removeChild(a);
-        }, 1500);
-
-        // Keep URL alive for 3 minutes for manual download button
-        setTimeout(() => {
-          URL.revokeObjectURL(blobUrl);
-        }, 180000);
-
-        // Show Success UI
-        setTimeout(() => {
-          workingSec.style.display = 'none';
-          doneSec.style.display = 'block';
-          closeBtn.style.display = 'block';
-          const manualLink = document.getElementById('exportManualDownloadLink');
-          manualLink.href = blobUrl;
-          manualLink.download = fileName;
-        }, 300);
-
-        isExporting = false;
-      };
-
-      // Duration in ms: split = 5.2s, lt = 5.1s
-      const totalDuration = currentMode === 'split' ? 5200 : 5100;
-      const totalSec = (totalDuration / 1000).toFixed(1);
-
-      // Draw initial frame
-      drawStageToCanvas();
-
-      // Start recording with 100ms chunk timeslice
-      recorder.start(100);
-
-      // Trigger GSAP timeline
-      playAnimation();
-
-      const startTime = performance.now();
-      let frameCount = 0;
-
-      exportAnimInterval = setInterval(() => {
-        if (exportCancelled) {
-          clearInterval(exportAnimInterval);
-          return;
-        }
-
-        const now = performance.now();
-        const elapsed = now - startTime;
-        frameCount++;
-
-        // Draw active frame to export canvas
-        drawStageToCanvas();
-
-        const fraction = Math.min(1.0, elapsed / totalDuration);
-        const pct = Math.min(99, Math.round(fraction * 100));
-
-        progressBar.style.width = pct + '%';
-        progressPct.innerText = pct + '%';
-        const elapsedSec = (elapsed / 1000).toFixed(1);
-        progressTime.innerText = `${elapsedSec} ث / ${totalSec} ث`;
-        statusDetail.innerText = `تم تسجيل ${frameCount} إطار (${pct}%) — رندرة حية...`;
-
-        if (elapsed >= totalDuration) {
-          clearInterval(exportAnimInterval);
-          statusDetail.innerText = 'اكتملت الرندرة! جاري ضغط الفيديو...';
-          progressBar.style.width = '100%';
-          progressPct.innerText = '100%';
-
-          if (recorder.state !== 'inactive') {
-            recorder.stop();
-          }
-        }
-      }, 1000 / 30);
-    }
-
-    function drawStageToCanvas() {
-      exportPNGDrawOnly();
-    }
-
-    function exportPNGDrawOnly() {
-      const canvas = document.getElementById('exportCanvas');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, 1920, 1080);
       ctx.direction = 'rtl';
 
-      // If recording WebM with Chroma Green background
-      if (isExporting && webmBgChoice === 'chroma') {
+      if (isChroma) {
         ctx.fillStyle = "#00FF00";
         ctx.fillRect(0, 0, 1920, 1080);
       }
@@ -1442,7 +1243,7 @@
 
         const divCol = document.getElementById('dividerColor').value;
 
-        // Draw Divider
+        // Divider
         if (divOp > 0.01 && divScaleY > 0.01) {
           ctx.save();
           ctx.globalAlpha = divOp;
@@ -1453,26 +1254,26 @@
           ctx.restore();
         }
 
-        // Draw Right Stage
+        // Right Stage
         ctx.save();
         ctx.globalAlpha = stageOpacity;
         ctx.translate(transX, 0);
 
-        ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
-        ctx.fillRect(960, 0, 960, 1080);
+        ctx.fillStyle = "rgba(14, 16, 22, 0.98)";
+        ctx.fillRect(964, 0, 956, 1080);
 
         // Header Bar
-        ctx.fillStyle = "#1E222C";
-        roundRect(ctx, 980, 24, 900, 68, 8, true);
+        ctx.fillStyle = "#181c26";
+        roundRect(ctx, 990, 24, 900, 68, 8, true);
         ctx.fillStyle = divCol;
-        ctx.fillRect(980, 89, 900, 3);
+        ctx.fillRect(990, 89, 900, 3);
 
         ctx.fillStyle = "#FFFFFF";
-        ctx.font = "bold 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.font = "bold 22px 'IBM Plex Sans Arabic', Cairo, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(document.getElementById('ssHeaderInput').value, 1430, 64);
+        ctx.fillText(document.getElementById('ssHeaderInput').value, 1440, 64);
 
-        // Document Image with Card Scale & Opacity
+        // Document Image Card
         const img = document.getElementById('ssDocImg');
         if (img && img.naturalWidth) {
           ctx.save();
@@ -1485,13 +1286,13 @@
 
           const dw = baseW * cardScale;
           const dh = baseH * cardScale;
-          const cx = 960 + 960 / 2;
+          const cx = 964 + 956 / 2;
           const cy = 110 + 860 / 2;
           const dx = cx - dw / 2;
           const dy = cy - dh / 2;
 
           ctx.save();
-          ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+          ctx.shadowColor = "rgba(0, 0, 0, 0.75)";
           ctx.shadowBlur = 40;
           ctx.shadowOffsetY = 15;
           ctx.fillStyle = "#FFFFFF";
@@ -1502,13 +1303,15 @@
           ctx.restore();
         }
 
+        // Footer Text
         ctx.fillStyle = divCol;
-        ctx.font = "800 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.font = "800 22px 'IBM Plex Sans Arabic', Cairo, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(document.getElementById('ssFooterInput').value, 1430, 1045);
+        ctx.fillText(document.getElementById('ssFooterInput').value, 1440, 1045);
         ctx.restore();
 
       } else {
+        // Lower Third
         const ltEl = document.getElementById('ltWrapper');
         const transY = gsap.getProperty(ltEl, "y") || 0;
         const rawOpacity = gsap.getProperty(ltEl, "opacity");
@@ -1523,29 +1326,36 @@
         const name = document.getElementById('ltNameInput').value;
         const affil = document.getElementById('ltAffilInput').value;
         const divCol = "#FFC61A";
+        const pos = document.getElementById('ltPositionSelect').value;
 
-        ctx.font = "800 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.font = "900 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
         const nameW = ctx.measureText(name).width;
         ctx.font = "600 18px 'IBM Plex Sans Arabic', Cairo, sans-serif";
         const affilW = ctx.measureText(affil).width;
         const boxW = Math.max(nameW, affilW) + 120;
 
-        const bx = 100;
-        const by = 1080 - 85 - 110;
+        let bx = 100;
+        if (pos === 'right') bx = 1920 - 100 - boxW;
+        if (pos === 'center') bx = (1920 - boxW) / 2;
+        const by = 1080 - 90 - 110;
 
         ctx.save();
-        ctx.shadowColor = "rgba(0, 0, 0, 0.75)";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
         ctx.shadowBlur = 30;
         ctx.shadowOffsetY = 14;
 
+        // Role Badge (right aligned to box)
         ctx.fillStyle = divCol;
-        roundRect(ctx, bx, by - 36, 220, 38, 8, true);
+        const roleW = Math.max(220, ctx.measureText(role).width + 60);
+        const rx = bx + boxW - roleW;
+        roundRect(ctx, rx, by - 36, roleW, 38, 8, true);
         ctx.fillStyle = "#111111";
         ctx.font = "900 21px 'IBM Plex Sans Arabic', Cairo, sans-serif";
         ctx.textAlign = "right";
-        ctx.fillText(role, bx + 220 - 24, by - 10);
+        ctx.fillText(role, rx + roleW - 22, by - 10);
 
-        ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
+        // Main Card
+        ctx.fillStyle = "rgba(16, 18, 25, 0.98)";
         roundRect(ctx, bx, by, boxW, 110, 14, true);
         ctx.restore();
 
@@ -1553,62 +1363,330 @@
         ctx.lineWidth = 2;
         roundRect(ctx, bx, by, boxW, 110, 14, false);
 
+        // Gold Indicator Bar
         ctx.fillStyle = divCol;
         const markH = 62 * barScaleY;
         const markY = by + 24 + (62 - markH) / 2;
         roundRect(ctx, bx + boxW - 24, markY, 8, markH, 4, true);
 
+        // Name
         ctx.fillStyle = "#FFFFFF";
-        ctx.font = "800 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
+        ctx.font = "900 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
         ctx.textAlign = "right";
         ctx.fillText(name, bx + boxW - 46, by + 52);
 
-        ctx.fillStyle = "#9ca3af";
+        // Affiliation
+        ctx.fillStyle = "#94a3b8";
         ctx.font = "600 18px 'IBM Plex Sans Arabic', Cairo, sans-serif";
         ctx.fillText(affil, bx + boxW - 46, by + 88);
         ctx.restore();
       }
     }
-    // SHOW CODE SNIPPET MODAL
+
+    // EXPORT METHOD 1: 1080p TRANSPARENT PNG
+    async function exportPNG() {
+      if (document.fonts) await document.fonts.ready;
+      resetAnimation();
+      drawActiveFrameToCanvas(false);
+
+      const canvas = document.getElementById('exportCanvas');
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const fileName = currentMode === 'split' ? 'joussour_split_screen_1080p.png' : 'joussour_lower_third_1080p.png';
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => document.body.removeChild(a), 1000);
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }, 'image/png');
+    }
+
+    // EXPORT METHOD 2: CHROMA GREEN VIDEO (1080p WebM)
+    async function exportChromaVideo() {
+      if (isExporting) return;
+      isExporting = true;
+      exportCancelled = false;
+
+      if (document.fonts) await document.fonts.ready;
+
+      const modal = document.getElementById('exportProgressModal');
+      const workingSec = document.getElementById('exportWorkingSection');
+      const doneSec = document.getElementById('exportDoneSection');
+      const progressBar = document.getElementById('exportProgressBar');
+      const progressPct = document.getElementById('exportProgressPct');
+      const progressTime = document.getElementById('exportProgressTime');
+      const statusDetail = document.getElementById('exportStatusDetail');
+      const closeBtn = document.getElementById('exportCloseBtn');
+
+      modal.style.display = 'flex';
+      workingSec.style.display = 'block';
+      doneSec.style.display = 'none';
+      closeBtn.style.display = 'none';
+      progressBar.style.width = '0%';
+      progressPct.innerText = '0%';
+      progressTime.innerText = '0.0 ث';
+      statusDetail.innerText = 'جاري إعداد فيديو الكروما الخضراء بدقة 1080p...';
+
+      const canvas = document.getElementById('exportCanvas');
+      canvas.width = 1920;
+      canvas.height = 1080;
+
+      let mimeType = 'video/webm;codecs=vp9';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
+      }
+
+      const stream = canvas.captureStream(30);
+      let recorder;
+      try {
+        recorder = new MediaRecorder(stream, { mimeType: mimeType, videoBitsPerSecond: 16000000 });
+      } catch (err) {
+        recorder = new MediaRecorder(stream);
+      }
+      currentMediaRecorder = recorder;
+
+      const chunks = [];
+      recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+      recorder.onstop = () => {
+        if (exportCancelled) return;
+
+        progressBar.style.width = '100%';
+        progressPct.innerText = '100%';
+        statusDetail.innerText = 'اكتملت الرندرة! جاري حفظ الملف...';
+
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const fileName = currentMode === 'split' ? 'joussour_split_chroma_1080p.webm' : 'joussour_lower_third_chroma_1080p.webm';
+        const blobUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 1500);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 180000);
+
+        setTimeout(() => {
+          workingSec.style.display = 'none';
+          doneSec.style.display = 'block';
+          closeBtn.style.display = 'block';
+          const manualLink = document.getElementById('exportManualDownloadLink');
+          manualLink.href = blobUrl;
+          manualLink.download = fileName;
+        }, 300);
+
+        isExporting = false;
+      };
+
+      const totalDuration = (currentMode === 'split' ? 1.5 + holdDuration : 1.2 + holdDuration) * 1000;
+      const totalSec = (totalDuration / 1000).toFixed(1);
+
+      drawActiveFrameToCanvas(true);
+      recorder.start(100);
+      playFullCycle();
+
+      const startTime = performance.now();
+      let frameCount = 0;
+
+      exportAnimInterval = setInterval(() => {
+        if (exportCancelled) {
+          clearInterval(exportAnimInterval);
+          return;
+        }
+
+        const elapsed = performance.now() - startTime;
+        frameCount++;
+        drawActiveFrameToCanvas(true);
+
+        const pct = Math.min(99, Math.round((elapsed / totalDuration) * 100));
+        progressBar.style.width = pct + '%';
+        progressPct.innerText = pct + '%';
+        const elapsedSec = (elapsed / 1000).toFixed(1);
+        progressTime.innerText = `${elapsedSec} ث / ${totalSec} ث`;
+        statusDetail.innerText = `تم تسجيل ${frameCount} إطار (${pct}%) بكروما خضراء نقية...`;
+
+        if (elapsed >= totalDuration) {
+          clearInterval(exportAnimInterval);
+          progressBar.style.width = '100%';
+          progressPct.innerText = '100%';
+          statusDetail.innerText = 'اكتملت الحركة! جاري ضغط ملف الفيديو...';
+          if (recorder.state !== 'inactive') recorder.stop();
+        }
+      }, 1000 / 30);
+    }
+
+    // EXPORT METHOD 3: PNG IMAGE SEQUENCE ZIP
+    async function exportImageSequenceZIP() {
+      if (typeof JSZip === 'undefined') {
+        alert("مكتبة ضغط الإطارات غير متوفرة حالياً.");
+        return;
+      }
+      if (isExporting) return;
+      isExporting = true;
+      exportCancelled = false;
+
+      if (document.fonts) await document.fonts.ready;
+
+      const modal = document.getElementById('exportProgressModal');
+      const workingSec = document.getElementById('exportWorkingSection');
+      const doneSec = document.getElementById('exportDoneSection');
+      const progressBar = document.getElementById('exportProgressBar');
+      const progressPct = document.getElementById('exportProgressPct');
+      const progressTime = document.getElementById('exportProgressTime');
+      const statusDetail = document.getElementById('exportStatusDetail');
+      const closeBtn = document.getElementById('exportCloseBtn');
+
+      modal.style.display = 'flex';
+      workingSec.style.display = 'block';
+      doneSec.style.display = 'none';
+      closeBtn.style.display = 'none';
+      progressBar.style.width = '0%';
+      progressPct.innerText = '0%';
+      progressTime.innerText = '0 إطار';
+      statusDetail.innerText = 'جاري تحضير حزمة الإطارات الشفافة (ZIP Sequence)...';
+
+      const zip = new JSZip();
+      const folderName = currentMode === 'split' ? 'joussour_split_screen_frames' : 'joussour_lower_third_frames';
+      const folder = zip.folder(folderName);
+
+      const totalDurationSec = currentMode === 'split' ? 1.5 + holdDuration : 1.2 + holdDuration;
+      const fps = 30;
+      const totalFrames = Math.round(totalDurationSec * fps);
+
+      playFullCycle();
+      currentTimeline.pause();
+
+      const canvas = document.getElementById('exportCanvas');
+
+      for (let i = 0; i < totalFrames; i++) {
+        if (exportCancelled) {
+          isExporting = false;
+          return;
+        }
+
+        const t = i / fps;
+        currentTimeline.time(t);
+        drawActiveFrameToCanvas(false);
+
+        // Convert canvas to blob synchronous/dataURL
+        const dataUrl = canvas.toDataURL('image/png');
+        const b64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
+        const framePad = String(i + 1).padStart(4, '0');
+        folder.file(`frame_${framePad}.png`, b64Data, { base64: true });
+
+        const pct = Math.round(((i + 1) / totalFrames) * 100);
+        progressBar.style.width = pct + '%';
+        progressPct.innerText = pct + '%';
+        progressTime.innerText = `${i + 1} / ${totalFrames} إطار`;
+        statusDetail.innerText = `تم تصيير الإطار ${i + 1} بدقة 1080p شفافة بالكامل...`;
+
+        // Small yield to let browser update UI
+        if (i % 5 === 0) {
+          await new Promise(r => setTimeout(r, 10));
+        }
+      }
+
+      statusDetail.innerText = 'جاري ضغط حزمة ملف الـ ZIP وتجهيز التنزيل...';
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const fileName = `${folderName}_1080p.zip`;
+      const zipUrl = URL.createObjectURL(zipBlob);
+
+      const a = document.createElement('a');
+      a.href = zipUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 1500);
+      setTimeout(() => URL.revokeObjectURL(zipUrl), 180000);
+
+      setTimeout(() => {
+        workingSec.style.display = 'none';
+        doneSec.style.display = 'block';
+        closeBtn.style.display = 'block';
+        const manualLink = document.getElementById('exportManualDownloadLink');
+        manualLink.href = zipUrl;
+        manualLink.download = fileName;
+      }, 300);
+
+      isExporting = false;
+      resetAnimation();
+    }
+
+    function cancelExport() {
+      exportCancelled = true;
+      if (exportAnimInterval) clearInterval(exportAnimInterval);
+      if (currentMediaRecorder && currentMediaRecorder.state !== 'inactive') {
+        try { currentMediaRecorder.stop(); } catch(e) {}
+      }
+      resetAnimation();
+      closeExportModal();
+    }
+
+    function closeExportModal() {
+      document.getElementById('exportProgressModal').style.display = 'none';
+      isExporting = false;
+    }
+
+    // Helper for Rounded Rectangles on Canvas
+    function roundRect(ctx, x, y, width, height, radius, fill) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) ctx.fill(); else ctx.stroke();
+    }
+
+    // CODE MODAL GENERATOR
     function showCodeModal() {
       const modal = document.getElementById('codeModal');
       const codeBox = document.getElementById('codeText');
       if (currentMode === 'split') {
-        const header = document.getElementById('ssHeaderInput').value;
-        const footer = document.getElementById('ssFooterInput').value;
-        codeBox.innerText = `# كود بايثون لإدراج الشاشة المنقسمة في CapCut / PyCapCut:
-mat_ss = cc.VideoMaterial("split_screen_export.png")
+        codeBox.innerText = `# كود بايثون وحقن الشاشة المنقسمة مباشرة في مسودة CapCut:
+import pycapcut as cc
+
+# 1. تسجيل مادة الصورة الشفافة (1080p PNG):
+mat_ss = cc.VideoMaterial("joussour_split_screen_1080p.png")
 script.add_material(mat_ss)
+
+# 2. إدراج المقطع في مسار الشاشات المنقسمة لمدة 45 ثانية:
 seg_ss = cc.VideoSegment(
     mat_ss,
-    target_timerange=cc.trange(sec_to_us(target_start_sec), sec_to_us(45.0))
+    target_timerange=cc.trange(cc.sec_to_us(target_start_sec), cc.sec_to_us(45.0))
 )
-script.add_segment(seg_ss, track_name="track_v2_split_screens")
-
-# أمر رندر HyperFrames عبر الطرفية:
-npx hyperframes render --format webm --alpha -o split_screen.webm`;
+script.add_segment(seg_ss, track_name="track_v2_split_screens")`;
       } else {
-        const role = document.getElementById('ltRoleInput').value;
         const name = document.getElementById('ltNameInput').value;
-        codeBox.innerText = `# كود بايثون لشريط التعريف في مسودة CapCut:
-mat_lt = cc.VideoMaterial("lower_third_${name}.png")
+        codeBox.innerText = `# كود بايثون وحقن شريط التعريف في مسودة CapCut:
+import pycapcut as cc
+
+# 1. تسجيل مادة شريط التعريف الشفاف:
+mat_lt = cc.VideoMaterial("joussour_lower_third_1080p.png")
 script.add_material(mat_lt)
+
+# 2. إدراج المقطع في مسار أشرطة التعريف لمدة ${holdDuration + 1} ثوان:
 seg_lt = cc.VideoSegment(
     mat_lt,
-    target_timerange=cc.trange(sec_to_us(target_start_sec), sec_to_us(12.0))
+    target_timerange=cc.trange(cc.sec_to_us(target_start_sec), cc.sec_to_us(${holdDuration + 1}.0))
 )
-script.add_segment(seg_lt, track_name="track_v3_lower_thirds")
-
-# أمر رندر HyperFrames لشريط التعريف:
-npx hyperframes render lower_third_template.html --format webm -o lower_third.webm`;
+script.add_segment(seg_lt, track_name="track_v3_lower_thirds")`;
       }
       modal.style.display = 'flex';
     }
 
-    function copyCode() {
+    function copyCode(e) {
       const txt = document.getElementById('codeText').innerText;
       navigator.clipboard.writeText(txt).then(() => {
-        const btn = event ? event.target : document.querySelector('#codeModal .btn-primary');
+        const btn = e ? e.target : document.querySelector('#codeModal .btn-primary');
         if (btn) {
           const oldTxt = btn.innerText;
           btn.innerText = "✓ تم النسخ بنجاح للحافظة!";
