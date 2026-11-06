@@ -825,6 +825,63 @@
     </div>
   </div>
 
+
+  <!-- Modal Export Progress (Joussour Studio) -->
+  <div class="modal-overlay" id="exportProgressModal" style="display: none;">
+    <div class="modal-box" style="width: 540px; text-align: center; border: 2px solid var(--gold); box-shadow: 0 0 35px rgba(255,198,26,0.25);">
+      <div class="modal-header" style="justify-content: center; position: relative; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h3 id="exportModalTitle" style="font-size: 18px; color: var(--gold); display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>🎬</span> جاري رندرة وتصدير الفيديو الشفاف بدقة 1080p
+        </h3>
+        <button id="exportCloseBtn" style="position: absolute; left: 0; top: 0; background:none; border:none; color:var(--text-muted); font-size: 20px; cursor: pointer; display: none;" onclick="closeExportModal()">✕</button>
+      </div>
+
+      <!-- Working / Recording State -->
+      <div id="exportWorkingSection" style="padding: 10px 0;">
+        <p style="font-size: 14px; color: #d1d5db; margin-bottom: 14px;" id="exportSubtitle">
+          يتم الآن رندرة إطارات الحركة وحفظ قناة الشفافية (Alpha Channel) بمعدل 30 إطار/ثانية...
+        </p>
+
+        <!-- Progress Bar Container -->
+        <div style="width: 100%; height: 20px; background: #090a0e; border-radius: 10px; border: 1px solid var(--border-color); overflow: hidden; position: relative; margin: 16px 0; box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);">
+          <div id="exportProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #d97706, #FFC61A, #ffe066); transition: width 0.1s linear; box-shadow: 0 0 15px rgba(255,198,26,0.7);"></div>
+        </div>
+
+        <!-- Progress Meta -->
+        <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: #f3f4f6; margin-top: 6px; padding: 0 4px;">
+          <span id="exportProgressTime">0.0 ث / 5.2 ث</span>
+          <span id="exportProgressPct" style="color: var(--gold); font-size: 16px;">0%</span>
+        </div>
+        <div style="font-size: 12px; color: #9ca3af; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 6px; display: inline-block;" id="exportStatusDetail">
+          جاري تجهيز مسار التسجيل...
+        </div>
+
+        <div style="margin-top: 18px;">
+          <button class="btn btn-secondary" style="font-size: 13px; padding: 6px 20px;" onclick="cancelExport()">
+            إلغاء التصدير
+          </button>
+        </div>
+      </div>
+
+      <!-- Done / Completed State -->
+      <div id="exportDoneSection" style="display: none; padding: 16px 0;">
+        <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
+        <h4 style="font-size: 18px; color: var(--success-green); margin-bottom: 8px;">تم تجهيز الفيديو بنجاح!</h4>
+        <p style="font-size: 13px; color: #d1d5db; margin-bottom: 20px;">
+          بدأ التنزيل التلقائي لملف WebM الشفاف. إذا منع المتصفح التنزيل التلقائي، يمكنك الضغط على الزر أدناه:
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <a id="exportManualDownloadLink" class="btn btn-primary" href="#" download="joussour_video.webm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; padding: 10px 20px;">
+            <span>📥</span> تحميل ملف الفيديو الآن (.webm)
+          </a>
+          <button class="btn btn-secondary" onclick="closeExportModal()" style="padding: 10px 18px;">
+            إغلاق
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentMode = 'split'; // 'split' or 'lt'
     let currentTimeline = null;
@@ -1147,53 +1204,183 @@
       if (fill) ctx.fill(); else ctx.stroke();
     }
 
-    // EXPORT TRANSPARENT WEBM (ALPHA CHANNEL)
+    // EXPORT TRANSPARENT WEBM (ALPHA CHANNEL) WITH PROGRESS & RESILIENCE
+    let isExporting = false;
+    let exportCancelled = false;
+    let exportAnimInterval = null;
+    let currentMediaRecorder = null;
+
+    function cancelExport() {
+      exportCancelled = true;
+      if (exportAnimInterval) clearInterval(exportAnimInterval);
+      if (currentMediaRecorder && currentMediaRecorder.state !== 'inactive') {
+        try { currentMediaRecorder.stop(); } catch(e) {}
+      }
+      resetAnimation();
+      closeExportModal();
+    }
+
+    function closeExportModal() {
+      document.getElementById('exportProgressModal').style.display = 'none';
+      isExporting = false;
+    }
+
     async function exportWebM() {
-      alert("جاري تسجيل وتصدير المقطع الشفاف بدقة 1080p... يرجى الانتظار بضع ثوانٍ");
+      if (isExporting) return;
+      isExporting = true;
+      exportCancelled = false;
+
+      // Ensure fonts are completely ready before recording
+      if (document.fonts) {
+        try { await document.fonts.ready; } catch(e) {}
+      }
+
+      const modal = document.getElementById('exportProgressModal');
+      const workingSec = document.getElementById('exportWorkingSection');
+      const doneSec = document.getElementById('exportDoneSection');
+      const progressBar = document.getElementById('exportProgressBar');
+      const progressPct = document.getElementById('exportProgressPct');
+      const progressTime = document.getElementById('exportProgressTime');
+      const statusDetail = document.getElementById('exportStatusDetail');
+      const closeBtn = document.getElementById('exportCloseBtn');
+
+      modal.style.display = 'flex';
+      workingSec.style.display = 'block';
+      doneSec.style.display = 'none';
+      closeBtn.style.display = 'none';
+      progressBar.style.width = '0%';
+      progressPct.innerText = '0%';
+      progressTime.innerText = '0.0 ث';
+      statusDetail.innerText = 'جاري إعداد محرك التسجيل الشفاف (Alpha Channel)...';
+
       const canvas = document.getElementById('exportCanvas');
+      canvas.width = 1920;
+      canvas.height = 1080;
       const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 1920, 1080);
+
+      // VP9 codec preserves alpha channel in Chrome
+      let mimeType = 'video/webm;codecs=vp9';
+      if (typeof MediaRecorder === 'undefined') {
+        alert('المتصفح لا يدعم تقنية MediaRecorder لتسجيل الفيديو.');
+        closeExportModal();
+        return;
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm';
+      }
+
       const stream = canvas.captureStream(30);
       let recorder;
       try {
-        recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
-      } catch (e) {
-        recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        recorder = new MediaRecorder(stream, { mimeType: mimeType, videoBitsPerSecond: 12000000 });
+      } catch (err) {
+        recorder = new MediaRecorder(stream);
       }
+      currentMediaRecorder = recorder;
 
       const chunks = [];
-      recorder.ondataavailable = e => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = currentMode === 'split' ? 'joussour_split_screen_transparent.webm' : 'joussour_lower_third_transparent.webm';
-        a.click();
-        URL.revokeObjectURL(url);
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
       };
 
-      recorder.start();
+      recorder.onstop = () => {
+        if (exportCancelled) return;
+
+        statusDetail.innerText = 'جاري تجميع وحفظ ملف الفيديو الشفاف...';
+        progressBar.style.width = '100%';
+        progressPct.innerText = '100%';
+
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const fileName = currentMode === 'split' 
+          ? 'joussour_split_screen_transparent.webm' 
+          : 'joussour_lower_third_transparent.webm';
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Auto trigger download
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          if (document.body.contains(a)) document.body.removeChild(a);
+        }, 1500);
+
+        // Keep URL alive for 3 minutes for manual download button
+        setTimeout(() => {
+          URL.revokeObjectURL(blobUrl);
+        }, 180000);
+
+        // Show Success UI
+        setTimeout(() => {
+          workingSec.style.display = 'none';
+          doneSec.style.display = 'block';
+          closeBtn.style.display = 'block';
+          const manualLink = document.getElementById('exportManualDownloadLink');
+          manualLink.href = blobUrl;
+          manualLink.download = fileName;
+        }, 300);
+
+        isExporting = false;
+      };
+
+      // Duration in ms: split = 5.2s, lt = 5.1s
+      const totalDuration = currentMode === 'split' ? 5200 : 5100;
+      const totalSec = (totalDuration / 1000).toFixed(1);
+
+      // Draw initial frame
+      drawStageToCanvas();
+
+      // Start recording with 100ms chunk timeslice
+      recorder.start(100);
+
+      // Trigger GSAP timeline
       playAnimation();
 
-      // Render frames continuously for the animation duration (5.5s)
       const startTime = performance.now();
-      const animInterval = setInterval(() => {
-        // Redraw stage to export canvas
+      let frameCount = 0;
+
+      exportAnimInterval = setInterval(() => {
+        if (exportCancelled) {
+          clearInterval(exportAnimInterval);
+          return;
+        }
+
+        const now = performance.now();
+        const elapsed = now - startTime;
+        frameCount++;
+
+        // Draw active frame to export canvas
         drawStageToCanvas();
-        if (performance.now() - startTime > 5500) {
-          clearInterval(animInterval);
-          recorder.stop();
+
+        const fraction = Math.min(1.0, elapsed / totalDuration);
+        const pct = Math.min(99, Math.round(fraction * 100));
+
+        progressBar.style.width = pct + '%';
+        progressPct.innerText = pct + '%';
+        const elapsedSec = (elapsed / 1000).toFixed(1);
+        progressTime.innerText = `${elapsedSec} ث / ${totalSec} ث`;
+        statusDetail.innerText = `تم تسجيل ${frameCount} إطار (${pct}%) — رندرة حية...`;
+
+        if (elapsed >= totalDuration) {
+          clearInterval(exportAnimInterval);
+          statusDetail.innerText = 'اكتملت الرندرة! جاري ضغط الفيديو...';
+          progressBar.style.width = '100%';
+          progressPct.innerText = '100%';
+
+          if (recorder.state !== 'inactive') {
+            recorder.stop();
+          }
         }
       }, 1000 / 30);
     }
 
     function drawStageToCanvas() {
-      // Re-trigger draw frame to canvas during recording
       exportPNGDrawOnly();
     }
 
     function exportPNGDrawOnly() {
-      // Same draw logic without downloading blob
       const canvas = document.getElementById('exportCanvas');
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, 1920, 1080);
@@ -1201,25 +1388,41 @@
 
       if (currentMode === 'split') {
         const stageEl = document.getElementById('ssRightStage');
-        const matrix = window.getComputedStyle(stageEl).transform;
-        let transX = 0;
-        let opacity = parseFloat(window.getComputedStyle(stageEl).opacity);
-        if (matrix !== 'none') {
-          const values = matrix.split('(')[1].split(')')[0].split(',');
-          transX = parseFloat(values[4]) || 0;
+        const transX = gsap.getProperty(stageEl, "x") || 0;
+        const rawStageOp = gsap.getProperty(stageEl, "opacity");
+        const stageOpacity = (rawStageOp !== null && rawStageOp !== undefined) ? rawStageOp : 1;
+
+        const rawDivScaleY = gsap.getProperty("#ssDivider", "scaleY");
+        const divScaleY = (rawDivScaleY !== null && rawDivScaleY !== undefined) ? rawDivScaleY : 1;
+        const rawDivOp = gsap.getProperty("#ssDivider", "opacity");
+        const divOp = (rawDivOp !== null && rawDivOp !== undefined) ? rawDivOp : 1;
+
+        const cardScale = gsap.getProperty("#ssDocCard", "scale") || 1;
+        const rawCardOp = gsap.getProperty("#ssDocCard", "opacity");
+        const cardOpacity = (rawCardOp !== null && rawCardOp !== undefined) ? rawCardOp : 1;
+
+        const divCol = document.getElementById('dividerColor').value;
+
+        // Draw Divider
+        if (divOp > 0.01 && divScaleY > 0.01) {
+          ctx.save();
+          ctx.globalAlpha = divOp;
+          ctx.fillStyle = divCol;
+          const dh = 1080 * divScaleY;
+          const dy = (1080 - dh) / 2;
+          ctx.fillRect(960, dy, 4, dh);
+          ctx.restore();
         }
 
+        // Draw Right Stage
         ctx.save();
-        ctx.globalAlpha = opacity;
+        ctx.globalAlpha = stageOpacity;
         ctx.translate(transX, 0);
 
         ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
         ctx.fillRect(960, 0, 960, 1080);
 
-        const divCol = document.getElementById('dividerColor').value;
-        ctx.fillStyle = divCol;
-        ctx.fillRect(960, 0, 4, 1080);
-
+        // Header Bar
         ctx.fillStyle = "#1E222C";
         roundRect(ctx, 980, 24, 900, 68, 8, true);
         ctx.fillStyle = divCol;
@@ -1230,18 +1433,34 @@
         ctx.textAlign = "center";
         ctx.fillText(document.getElementById('ssHeaderInput').value, 1430, 64);
 
+        // Document Image with Card Scale & Opacity
         const img = document.getElementById('ssDocImg');
         if (img && img.naturalWidth) {
+          ctx.save();
+          ctx.globalAlpha = stageOpacity * cardOpacity;
           const maxW = 640;
           const maxH = 840;
           const ratio = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
-          const dw = img.naturalWidth * ratio;
-          const dh = img.naturalHeight * ratio;
-          const dx = 960 + (960 - dw) / 2;
-          const dy = 110 + (860 - dh) / 2;
+          const baseW = img.naturalWidth * ratio;
+          const baseH = img.naturalHeight * ratio;
+
+          const dw = baseW * cardScale;
+          const dh = baseH * cardScale;
+          const cx = 960 + 960 / 2;
+          const cy = 110 + 860 / 2;
+          const dx = cx - dw / 2;
+          const dy = cy - dh / 2;
+
+          ctx.save();
+          ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+          ctx.shadowBlur = 40;
+          ctx.shadowOffsetY = 15;
           ctx.fillStyle = "#FFFFFF";
           roundRect(ctx, dx, dy, dw, dh, 6, true);
+          ctx.restore();
+
           ctx.drawImage(img, dx, dy, dw, dh);
+          ctx.restore();
         }
 
         ctx.fillStyle = divCol;
@@ -1252,13 +1471,10 @@
 
       } else {
         const ltEl = document.getElementById('ltWrapper');
-        const matrix = window.getComputedStyle(ltEl).transform;
-        let transY = 0;
-        let opacity = parseFloat(window.getComputedStyle(ltEl).opacity);
-        if (matrix !== 'none') {
-          const values = matrix.split('(')[1].split(')')[0].split(',');
-          transY = parseFloat(values[5]) || 0;
-        }
+        const transY = gsap.getProperty(ltEl, "y") || 0;
+        const rawOpacity = gsap.getProperty(ltEl, "opacity");
+        const opacity = (rawOpacity !== null && rawOpacity !== undefined) ? rawOpacity : 1;
+        const barScaleY = gsap.getProperty(".lt-gold-bar", "scaleY") || 1;
 
         ctx.save();
         ctx.globalAlpha = opacity;
@@ -1278,6 +1494,11 @@
         const bx = 100;
         const by = 1080 - 85 - 110;
 
+        ctx.save();
+        ctx.shadowColor = "rgba(0, 0, 0, 0.75)";
+        ctx.shadowBlur = 30;
+        ctx.shadowOffsetY = 14;
+
         ctx.fillStyle = divCol;
         roundRect(ctx, bx, by - 36, 220, 38, 8, true);
         ctx.fillStyle = "#111111";
@@ -1287,12 +1508,16 @@
 
         ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
         roundRect(ctx, bx, by, boxW, 110, 14, true);
+        ctx.restore();
+
         ctx.strokeStyle = divCol;
         ctx.lineWidth = 2;
         roundRect(ctx, bx, by, boxW, 110, 14, false);
 
         ctx.fillStyle = divCol;
-        roundRect(ctx, bx + boxW - 24, by + 24, 8, 62, 4, true);
+        const markH = 62 * barScaleY;
+        const markY = by + 24 + (62 - markH) / 2;
+        roundRect(ctx, bx + boxW - 24, markY, 8, markH, 4, true);
 
         ctx.fillStyle = "#FFFFFF";
         ctx.font = "800 34px 'IBM Plex Sans Arabic', Cairo, sans-serif";
@@ -1305,7 +1530,6 @@
         ctx.restore();
       }
     }
-
     // SHOW CODE SNIPPET MODAL
     function showCodeModal() {
       const modal = document.getElementById('codeModal');
@@ -1345,7 +1569,12 @@ npx hyperframes render lower_third_template.html --format webm -o lower_third.we
     function copyCode() {
       const txt = document.getElementById('codeText').innerText;
       navigator.clipboard.writeText(txt).then(() => {
-        alert("تم نسخ الكود بنجاح إلى الحافظة!");
+        const btn = event ? event.target : document.querySelector('#codeModal .btn-primary');
+        if (btn) {
+          const oldTxt = btn.innerText;
+          btn.innerText = "✓ تم النسخ بنجاح للحافظة!";
+          setTimeout(() => btn.innerText = oldTxt, 2500);
+        }
       });
     }
   </script>
