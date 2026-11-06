@@ -724,13 +724,36 @@
         <div class="form-group">
           <label class="form-label">خيارات التصدير للمونتاج المباشر</label>
           <div class="btn-row">
-            <button class="btn btn-green" onclick="exportPNG()">
-              <span>📸 تصدير PNG (1080p)</span>
+            <button class="btn btn-green" onclick="exportPNG()" title="أعلى جودة وتفريغ حقيقي 100% بدون خلفية لـ CapCut">
+              <span>📸 تصدير PNG (1080p شفاف)</span>
             </button>
-            <button class="btn btn-secondary" onclick="exportWebM()">
-              <span>🎥 تصدير WebM شفاف</span>
+            <button class="btn btn-secondary" onclick="exportWebM()" title="تصدير فيديو متحرك بحركة الدخول والخروج">
+              <span>🎥 تصدير WebM متحرك</span>
             </button>
           </div>
+
+          <!-- WebM Background Choice -->
+          <div style="margin-top: 10px; background: rgba(0,0,0,0.35); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="color: var(--text-muted); font-size: 12px;">خلفية فيديو الـ WebM:</span>
+              <div style="display: flex; gap: 10px;">
+                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <input type="radio" name="webmBg" value="chroma" checked onchange="setWebmBg(this.value)">
+                  <span style="color: #4ade80; font-weight: 700; font-size: 12px;">كروما خضراء 🟩</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <input type="radio" name="webmBg" value="transparent" onchange="setWebmBg(this.value)">
+                  <span style="color: #9ca3af; font-size: 12px;">تفريغ متصفح</span>
+                </label>
+              </div>
+            </div>
+            <div style="font-size: 11px; color: #cbd5e1; line-height: 1.5; border-right: 3px solid var(--gold); padding-right: 8px;">
+              💡 <strong>نصيحة لكاب كات (CapCut):</strong>
+              <br>• <strong>الأفضل:</strong> استخدم <strong>PNG شفاف</strong> مع حركة Slide Up من تبويب Animation بكاب كات.
+              <br>• <strong>لفيديو WebM:</strong> استخدم خيار <strong>كروما خضراء</strong> ثم فعّل <strong>Chroma Key</strong> في كاب كات لتفريغ الخلفية بضغطة زر.
+            </div>
+          </div>
+
           <button class="btn btn-secondary" style="margin-top: 8px;" onclick="showCodeModal()">
             <span>📋 نسخ كود HyperFrames / CapCut</span>
           </button>
@@ -1074,6 +1097,12 @@
       ctx.clearRect(0, 0, 1920, 1080);
       ctx.direction = 'rtl';
 
+      // If recording WebM with Chroma Green background
+      if (isExporting && webmBgChoice === 'chroma') {
+        ctx.fillStyle = "#00FF00";
+        ctx.fillRect(0, 0, 1920, 1080);
+      }
+
       if (currentMode === 'split') {
         // Draw Right Stage background
         ctx.fillStyle = "rgba(18, 20, 26, 0.97)";
@@ -1205,6 +1234,10 @@
     }
 
     // EXPORT TRANSPARENT WEBM (ALPHA CHANNEL) WITH PROGRESS & RESILIENCE
+    let webmBgChoice = 'chroma'; // 'chroma' or 'transparent'
+    function setWebmBg(val) {
+      webmBgChoice = val;
+    }
     let isExporting = false;
     let exportCancelled = false;
     let exportAnimInterval = null;
@@ -1385,6 +1418,12 @@
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, 1920, 1080);
       ctx.direction = 'rtl';
+
+      // If recording WebM with Chroma Green background
+      if (isExporting && webmBgChoice === 'chroma') {
+        ctx.fillStyle = "#00FF00";
+        ctx.fillRect(0, 0, 1920, 1080);
+      }
 
       if (currentMode === 'split') {
         const stageEl = document.getElementById('ssRightStage');
